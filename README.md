@@ -1,5 +1,7 @@
 #Logback Redis Batch Appender
 
+Build Status: [![Build Status](https://travis-ci.com/idealo/logback-redis.svg?token=NwgUMXstLbcSwdjknC8o&branch=master)](https://travis-ci.com/idealo/logback-redis) 
+
 Enables Java applications to log directly to [redis](http://redis.io/) via the [jedis](https://github.com/xetorthio/jedis) client as part of centralized logging with the [ELK](https://www.elastic.co/products) stack.
 
 More specifically, it uses [async appenders](https://github.com/logstash/logstash-logback-encoder#async) and [JSON encoding](https://github.com/logstash/logstash-logback-encoder#composite_encoder) of the [logstash-logback-encoder](https://github.com/logstash/logstash-logback-encoder) project. Messages are sent to redis in [batches](http://redis.io/topics/pipelining) for performance reasons. The [redis sentinel functionality](http://redis.io/topics/sentinel) is supported.
