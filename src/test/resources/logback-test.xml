@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
 
-    <appender name="REDIS_APPENDER" class="de.idealo.common.logback.redis.appender.RedisBatchAppender">
+    <appender name="REDIS_APPENDER" class="de.idealo.logback.appender.RedisBatchAppender">
         <connectionConfig>
             <!-- redis sentinel: -->
             <!--<scheme>${logback.redis.test.redis.scheme:-SENTINEL}</scheme>-->
@@ -51,7 +51,7 @@
         </encoder>
     </appender>
 
-    <logger name="de.idealo.common.logback.redis" level="debug" additivity="false">
+    <logger name="de.idealo.logback.appender" level="debug" additivity="false">
         <appender-ref ref="CONSOLE" />
     </logger>
 

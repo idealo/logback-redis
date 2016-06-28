@@ -4,7 +4,7 @@
     <appender name="REDIS_APPENDER" class="net.logstash.logback.appender.LoggingEventAsyncDisruptorAppender">
         <ringBufferSize>131072</ringBufferSize>
         <waitStrategyType>sleeping</waitStrategyType>
-        <appender class="de.idealo.common.logback.redis.appender.RedisBatchAppender">
+        <appender class="de.idealo.logback.appender.RedisBatchAppender">
             <connectionConfig>
                 <!-- redis sentinel: -->
                 <scheme>SENTINEL</scheme>
