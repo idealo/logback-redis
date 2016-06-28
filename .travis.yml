@@ -3,6 +3,8 @@ language: java
 jdk:
   - oraclejdk8
 
+script: mvn verify
+
 # configure notifications (email, IRC, campfire etc)
 notifications:
   email:
