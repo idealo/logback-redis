@@ -1,0 +1,10 @@
+language: java
+
+jdk:
+  - oraclejdk8
+
+# configure notifications (email, IRC, campfire etc)
+notifications:
+  email:
+    - christof.danzl@idealo.de
+    - volker.sommerfeld@idealo.de
