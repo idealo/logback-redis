@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.embedded.RedisServer;
+import redis.embedded.RedisServerBuilder;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -31,13 +32,10 @@ public class RedisBatchAppenderEmbeddedIT {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-/*
         redisServer = new RedisServerBuilder()
                 .port(LOCAL_REDIS_PORT)
                 .setting("timeout " + REDIS_IDLE_TIMEOUT_IN_SECONDS)
                 .build();
-*/
-        redisServer = new RedisServer(LOCAL_REDIS_PORT);
         redisServer.start(); // this waits until server write start notification to stdout (!)
         log().info("started redis server");
 
@@ -74,7 +72,7 @@ public class RedisBatchAppenderEmbeddedIT {
         messageIsSuccessfullyLoggedForSequenceNumber(0);
         log().info("all messages are successfully logged before connection timeout");
 
-        log().info("waiting " + SLEEP_TIME_IN_SECONDS_FOR_CONNECTION_TIMEOUT + " seconds before logging to redis again");
+        log().info("waiting " + SLEEP_TIME_IN_SECONDS_FOR_CONNECTION_TIMEOUT + " seconds before logging to redis again...");
         Thread.sleep(SLEEP_TIME_IN_SECONDS_FOR_CONNECTION_TIMEOUT * 1000L);
 
         // get fresh connection from the pool; previous one has meanwhile timed out
