@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <appender name="REDIS_APPENDER" class="de.idealo.common.logback.redis.appender.RedisBatchAppender">
+        <connectionConfig>
+            <!-- redis sentinel: -->
+            <!--<scheme>${logback.redis.test.redis.scheme:-SENTINEL}</scheme>-->
+            <!--<sentinelMasterName>${logback.redis.test.redis.sentinelMasterName:-mymaster}</sentinelMasterName>-->
+            <!--<sentinels>${logback.redis.test.redis.sentinels:-localhost:26379}</sentinels>-->
+            <!--redis node: -->
+            <scheme>NODE</scheme>
+            <host>${logback.redis.test.redis.host:-localhost}</host>
+            <port>${logback.redis.test.redis.port:-6379}</port> <!-- embedded redis -->
+            <key>integrationtest</key>
+        </connectionConfig>
+        <maxBatchMessages>1</maxBatchMessages>
+        <maxBatchSeconds>10</maxBatchSeconds>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <mdc/>
+                <pattern>
+                    <pattern>
+                        {
+                        <!--"timestamp": "%d{yyyy-MM-dd'T'HH:mm:ss.SSSZZ}",--> <!-- skip for integration testing -->
+                        "message": "%message",
+                        "logger": "%logger",
+                        "thread": "%thread",
+                        "level": "%level",
+                        <!--"host": "${HOSTNAME}",--> <!-- skip for integration testing -->
+                        "file": "%file"
+                        <!--"line": "%line"--> <!-- skip for integration testing -->
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <logger name="LoggingTest" level="info" additivity="false">
+        <appender-ref ref="REDIS_APPENDER" />
+    </logger>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>
+                <!-- with MDC
+                %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n%mdc%n
+                -->
+                %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+            </Pattern>
+        </encoder>
+    </appender>
+
+    <logger name="de.idealo.common.logback.redis" level="debug" additivity="false">
+        <appender-ref ref="CONSOLE" />
+    </logger>
+
+</configuration>
