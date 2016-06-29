@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.idealo.logback</groupId>
 	<artifactId>logback-redis</artifactId>
-	<version>0.9-SNAPSHOT</version>
+	<version>0.9.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Logback to Redis Appender</name>
