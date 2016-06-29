@@ -1,6 +1,5 @@
-#Logback Redis Batch Appender
-
-Build Status: [![Build Status](https://travis-ci.com/idealo/logback-redis.svg?token=NwgUMXstLbcSwdjknC8o&branch=master)](https://travis-ci.com/idealo/logback-redis) 
+#Logback Redis Batch Appender 
+[![Build Status](https://travis-ci.com/idealo/logback-redis.svg?token=NwgUMXstLbcSwdjknC8o&branch=master)](https://travis-ci.com/idealo/logback-redis) 
 
 Enables Java applications to log directly to [redis](http://redis.io/) via the [jedis](https://github.com/xetorthio/jedis) client as part of centralized logging with the [ELK](https://www.elastic.co/products) stack.
 
