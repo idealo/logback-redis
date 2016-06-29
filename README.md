@@ -42,7 +42,7 @@ The current logstash-logback-encoder.version is 4.7.
 <included>
     <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
     <appender name="REDIS_APPENDER" class="net.logstash.logback.appender.LoggingEventAsyncDisruptorAppender">
-        <ringBufferSize>1048576</ringBufferSize>
+        <ringBufferSize>131072</ringBufferSize>
         <waitStrategyType>sleeping</waitStrategyType>
         <appender class="de.idealo.logback.appender.RedisBatchAppender">
             <connectionConfig>
