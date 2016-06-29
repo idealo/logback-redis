@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.exceptions.JedisConnectionException;
+import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.util.Pool;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
@@ -79,7 +80,7 @@ public class RedisBatchAppender extends AppenderBase<ILoggingEvent> {
             log().debug("re-create Jedis client and resend event after JedisConnectionException while appending the event '{}'.", event);
 
             try {
-                client.close();
+                closeJedisClientGracefully();
                 initJedisClient();
                 appendUnsafe(event);
             } catch(Exception exceptionDuringRetry) {
@@ -90,6 +91,21 @@ public class RedisBatchAppender extends AppenderBase<ILoggingEvent> {
         } catch(Exception e) {
             // all other exceptions during append are logged
             log().error("Exception while appending the event '" + event + "'. The event is lost.", e);
+        }
+    }
+
+    /**
+     * Closes the jedis client gracefully. More specifically, {@link JedisException} while closing the client
+     * is caught and solely logged because the client will be re-initialized afterwards.
+     *
+     * {@link JedisException} is thrown e.g. if the redis server is temporarily not available.
+     */
+    private void closeJedisClientGracefully() {
+        try {
+            client.close();
+        } catch(JedisException e) {
+            // ignore
+            log().warn("Intentionally ignoring exception while closing the jedis client. The client will be re-initialized afterwards.", e);
         }
     }
 

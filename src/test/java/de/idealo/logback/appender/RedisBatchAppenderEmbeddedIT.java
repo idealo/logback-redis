@@ -25,6 +25,7 @@ public class RedisBatchAppenderEmbeddedIT {
     private static final int LOCAL_REDIS_PORT = 6379;
     private static final int REDIS_IDLE_TIMEOUT_IN_SECONDS = 3;
     private static final int SLEEP_TIME_IN_SECONDS_FOR_CONNECTION_TIMEOUT = 5;
+    private static final String REDIS_KEY_INTEGRATIONTEST = "integrationtest";
 
     private static RedisServer redisServer;
     private static Jedis redisClient;
@@ -72,7 +73,7 @@ public class RedisBatchAppenderEmbeddedIT {
         messageIsSuccessfullyLoggedForSequenceNumber(0);
         log().info("all messages are successfully logged before connection timeout");
 
-        log().info("waiting " + SLEEP_TIME_IN_SECONDS_FOR_CONNECTION_TIMEOUT + " seconds before logging to redis again...");
+        log().info("waiting {} seconds before logging to redis again", SLEEP_TIME_IN_SECONDS_FOR_CONNECTION_TIMEOUT);
         Thread.sleep(SLEEP_TIME_IN_SECONDS_FOR_CONNECTION_TIMEOUT * 1000L);
 
         // get fresh connection from the pool; previous one has meanwhile timed out
@@ -82,8 +83,31 @@ public class RedisBatchAppenderEmbeddedIT {
         log().info("all messages are successfully logged after connection timeout");
     }
 
+    @Test
+    public void allMessagesAreSuccessfullyLoggedAfterRedisWasTemporarilyNotAvailable() throws Exception {
+        redisServer.stop();
+        log().info("stopped redis server");
+        logMessages(1, 1, "message during stopped redis");
+
+        redisServer.start();
+        log().info("re-started redis server");
+        // get fresh connection from the pool
+        redisClient = new JedisPool("localhost", LOCAL_REDIS_PORT).getResource();
+
+        assertNoMessagesInRedis();
+
+        messageIsSuccessfullyLoggedForSequenceNumber(1);
+        messageIsSuccessfullyLoggedForSequenceNumber(2);
+        log().info("all messages are successfully logged after redis server was temporarily not available");
+    }
+
+    private void assertNoMessagesInRedis() {
+        String loggedMessage = redisClient.lindex(REDIS_KEY_INTEGRATIONTEST, 0);
+        assertThat(loggedMessage, is(nullValue()));
+    }
+
     private void messageIsSuccessfullyLoggedForSequenceNumber(int expectedSequenceNumber) throws Exception {
-        redisClient.del("integrationtest");
+        redisClient.del(REDIS_KEY_INTEGRATIONTEST);
         logMessages(1, 1, "dummy");
         String expectedLoggedMessage = "{" +
                 "\"seq\":\"" + expectedSequenceNumber + "\"," +
@@ -97,7 +121,7 @@ public class RedisBatchAppenderEmbeddedIT {
                 "}";
         log().debug("expected logged message: {}", expectedLoggedMessage);
 
-        String loggedMessage = redisClient.lindex("integrationtest", 0);
+        String loggedMessage = redisClient.lindex(REDIS_KEY_INTEGRATIONTEST, 0);
         log().debug("logged message: {}", loggedMessage);
 
         assertThat(loggedMessage, is(not(nullValue())));
@@ -113,10 +137,10 @@ public class RedisBatchAppenderEmbeddedIT {
 
             int messagesSent = i + 1;
             if (messagesSent % statsInterval == 0) {
-                log().info("Messages sent so far: " + messagesSent);
+                log().info("Messages sent so far: {}",  messagesSent);
             }
         }
-        log().info("Messages sent TOTAL: " + count);
+        log().info("Messages sent TOTAL: {}", count);
     }
 
     private void initMDC() {
