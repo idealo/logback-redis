@@ -5,17 +5,16 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import ch.qos.logback.core.AppenderBase;
+import ch.qos.logback.core.encoder.Encoder;
+import ch.qos.logback.core.spi.DeferredProcessingAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.util.Pool;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.AppenderBase;
-import ch.qos.logback.core.encoder.Encoder;
 
 /**
  * Logback appender that writes logging events in batches to redis.
@@ -25,7 +24,7 @@ import ch.qos.logback.core.encoder.Encoder;
  *
  * @see <a href="http://logback.qos.ch/manual/appenders.html">logback appender documentation</a>
  */
-public class RedisBatchAppender extends AppenderBase<ILoggingEvent> {
+public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
 
     private static final int BUFFER_SIZE = 1024 * 1024;
     private static final int DEFAULT_MAX_BATCH_MESSAGES = 1000;
@@ -42,7 +41,7 @@ public class RedisBatchAppender extends AppenderBase<ILoggingEvent> {
     private Pipeline pipeline;
 
     // logger configurable options
-    private Encoder<ILoggingEvent> encoder;
+    private Encoder<DeferredProcessingAware> encoder;
     private int maxBatchMessages = DEFAULT_MAX_BATCH_MESSAGES;
     private int maxBatchSeconds = DEFAULT_MAX_BATCH_SECONDS;
     private RedisConnectionConfig connectionConfig;
@@ -72,7 +71,7 @@ public class RedisBatchAppender extends AppenderBase<ILoggingEvent> {
     }
 
     @Override
-    protected void append(ILoggingEvent event) {
+    protected void append(DeferredProcessingAware event) {
         try {
             log().debug("logging to redis: " + String.valueOf(event));
             appendUnsafe(event);
@@ -116,7 +115,7 @@ public class RedisBatchAppender extends AppenderBase<ILoggingEvent> {
      *
      * @param event event to be appended
      */
-    private void appendUnsafe(ILoggingEvent event) {
+    private void appendUnsafe(DeferredProcessingAware event) {
         if (event != null) {
             rpushAndSyncIfBatchFinished(event);
         } else {
@@ -124,7 +123,7 @@ public class RedisBatchAppender extends AppenderBase<ILoggingEvent> {
         }
     }
 
-    private void rpushAndSyncIfBatchFinished(ILoggingEvent event) {
+    private void rpushAndSyncIfBatchFinished(DeferredProcessingAware event) {
         pipeline.rpush(connectionConfig.getKey(), createEncodedEvent(event));
         batchConfig.addBatchItem();
 
@@ -144,11 +143,11 @@ public class RedisBatchAppender extends AppenderBase<ILoggingEvent> {
         pool.destroy();
     }
 
-    public Encoder<ILoggingEvent> getEncoder() {
+    public Encoder<DeferredProcessingAware> getEncoder() {
         return encoder;
     }
 
-    public void setEncoder(Encoder<ILoggingEvent> encoder) {
+    public void setEncoder(Encoder<DeferredProcessingAware> encoder) {
         this.encoder = encoder;
     }
 
@@ -202,14 +201,14 @@ public class RedisBatchAppender extends AppenderBase<ILoggingEvent> {
         }
     }
 
-    private String createEncodedEvent(ILoggingEvent event) {
+    private String createEncodedEvent(DeferredProcessingAware event) {
         try (ByteArrayOutputStream eventOutputStream = new ByteArrayOutputStream(BUFFER_SIZE)) {
             encoder.init(eventOutputStream);
             encoder.doEncode(event);
 
             return eventOutputStream.toString("UTF-8");
         } catch (IOException e) {
-            throw new RuntimeException("error while initializing the event encoder", e);
+            throw new IllegalStateException("error while initializing the event encoder", e);
         }
     }
 
