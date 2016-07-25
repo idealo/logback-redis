@@ -30,6 +30,7 @@ import redis.clients.util.Pool;
  * @see <a href="http://logback.qos.ch/manual/appenders.html">logback appender documentation</a>
  */
 public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
+    private final static Logger LOG = LoggerFactory.getLogger(RedisBatchAppender.class);
 
     private static final int BUFFER_SIZE = 1024 * 1024;
     private static final int DEFAULT_MAX_BATCH_MESSAGES = 1000;
@@ -38,11 +39,11 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     private static final long REDIS_SYNC_TIMER_PERIOD = 10000L;
     private static final double MILLIS_PER_SECOND_DOUBLE = 1000.0;
 
-    private Timer timer;
+    private final Timer batchTimer = new Timer();;
     private BatchConfig batchConfig;
 
     private Pool<Jedis> pool;
-    private Jedis client = null;
+    private Jedis client;
     private Pipeline                 pipeline;
     private ScheduledExecutorService retryExecutorService;
 
@@ -53,16 +54,8 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     private int maxBatchMessages = DEFAULT_MAX_BATCH_MESSAGES;
     private int maxBatchSeconds  = DEFAULT_MAX_BATCH_SECONDS;
     private RedisConnectionConfig connectionConfig;
+
     private final AtomicInteger connectionStartupCounter = new AtomicInteger();
-
-    private Object logger;
-
-    private Logger log() {
-        if (logger == null) {
-            logger = LoggerFactory.getLogger(RedisBatchAppender.class);
-        }
-        return (Logger) logger;
-    }
 
     @Override
     public void start() {
@@ -80,20 +73,20 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
         try {
             startLoggingLifecycle(jedisPoolFactory);
         } catch (Exception e) {
-            log().error(e.getMessage(), e);
+            LOG.error(e.getMessage(), e);
             if (retryOnInitializeError) {
                 retryExecutorService = Executors.newScheduledThreadPool(1);
                 retryExecutorService.scheduleAtFixedRate(new Runnable() {
                     @Override
                     public void run() {
-                        log().info("retry initializing");
+                        LOG.info("retry initializing");
                         try {
                             startLoggingLifecycle(jedisPoolFactory);
-                            log().info("retry initializing succeded");
+                            LOG.info("retry initializing succeded");
                             retryExecutorService.shutdown();
                             connectionStartupCounter.incrementAndGet();
                         } catch (Exception e) {
-                            log().error("retried initialization failed " + e.getMessage(), e);
+                            LOG.error("retried initialization failed " + e.getMessage(), e);
                         }
                     }
                 }, retryInitializeIntervalInSeconds, retryInitializeIntervalInSeconds, TimeUnit.SECONDS);
@@ -110,13 +103,13 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     protected void append(DeferredProcessingAware event) {
         try {
             if (pipeline == null) {
-                log().warn("pipeline not ready");
+                LOG.warn("pipeline not ready");
             } else {
-                log().debug("logging to redis: " + String.valueOf(event));
+                LOG.debug("logging to redis: {}", String.valueOf(event));
                 appendUnsafe(event);
             }
         } catch(JedisConnectionException e) {
-            log().debug("re-create Jedis client and resend event after JedisConnectionException while appending the event '{}'.",event);
+            LOG.debug("re-create Jedis client and resend event after JedisConnectionException while appending the event '{}'.", event);
 
             try {
                 closeJedisClientGracefully();
@@ -124,12 +117,12 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
                 appendUnsafe(event);
             } catch(Exception exceptionDuringRetry) {
                 // exceptions during retry are logged
-                log().error("Exception while retrying to append the event '" + event + "' with a re-initialized Jedis client. The event is lost.",
-                        exceptionDuringRetry);
+                LOG.error("Exception while retrying to append the event '" + event + "' with a re-initialized Jedis client. The event is lost.",
+                          exceptionDuringRetry);
             }
         } catch(Exception e) {
             // all other exceptions during append are logged
-            log().error("Exception while appending the event '" + event + "'. The event is lost.", e);
+            LOG.error("Exception while appending the event '" + event + "'. The event is lost.", e);
         }
     }
 
@@ -143,8 +136,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
         try {
             client.close();
         } catch(JedisException e) {
-            // ignore
-            log().warn("Intentionally ignoring exception while closing the jedis client. The client will be re-initialized afterwards.", e);
+            LOG.warn("Intentionally ignoring exception while closing the jedis client. The client will be re-initialized afterwards.", e);
         }
     }
 
@@ -177,7 +169,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     public void stop() {
         // pipeline must be synchronized in order to write the remaining messages to redis
         doAppend(null);
-        timer.cancel();
+        batchTimer.cancel();
 
         super.stop();
         pool.destroy();
@@ -227,13 +219,13 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
 
         long start = System.currentTimeMillis();
         pipeline.sync();
-        if (log().isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             long elapsedTime = System.currentTimeMillis() - start;
             double eventsPerSecond = Math.round(MILLIS_PER_SECOND_DOUBLE * batchSize / elapsedTime);
-            log().debug("sent {} events to Redis in {}ms => rate (events per second) = {}",
-                        batchSize,
-                        elapsedTime,
-                        eventsPerSecond);
+            LOG.debug("sent {} events to Redis in {}ms => rate (events per second) = {}",
+                      batchSize,
+                      elapsedTime,
+                      eventsPerSecond);
         }
         pipeline = client.pipelined();
     }
@@ -256,8 +248,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     }
 
     private void initBatchScheduler() {
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
+        batchTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 doAppend(null);
