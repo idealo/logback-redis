@@ -4,6 +4,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
@@ -38,9 +41,12 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
 
     private Pool<Jedis> pool;
     private Jedis client = null;
-    private Pipeline pipeline;
+    private Pipeline                 pipeline;
+    private ScheduledExecutorService retryExecutorService;
 
     // logger configurable options
+    private boolean retryOnInitializeError           = true;
+    private int     retryInitializeIntervalInSeconds = 30;
     private Encoder<DeferredProcessingAware> encoder;
     private int maxBatchMessages = DEFAULT_MAX_BATCH_MESSAGES;
     private int maxBatchSeconds = DEFAULT_MAX_BATCH_SECONDS;
@@ -59,16 +65,43 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     public void start() {
         super.start();
 
-        initPool();
-
         batchConfig = new BatchConfig(maxBatchMessages, maxBatchSeconds);
-
         checkEncoderPresent();
-
-        initJedisClient();
-
         initBatchScheduler();
+
+        wrapStartupRetriesOnConnectionFailures();
     }
+
+    private void wrapStartupRetriesOnConnectionFailures() {
+        JedisPoolFactory jedisPoolFactory = new JedisPoolFactory(connectionConfig);
+        try {
+            startLoggingLifecycle(jedisPoolFactory);
+        } catch (Exception e) {
+            log().error(e.getMessage(), e);
+            if (retryOnInitializeError) {
+                retryExecutorService = Executors.newScheduledThreadPool(1);
+                retryExecutorService.scheduleAtFixedRate(new Runnable() {
+                    @Override
+                    public void run() {
+                        log().error("retry initializing");
+                        try {
+                            startLoggingLifecycle(jedisPoolFactory);
+                            retryExecutorService.shutdown();
+                        } catch (Exception e) {
+                            log().error("retried initialization failed ");
+                        }
+                    }
+                }, retryInitializeIntervalInSeconds, retryInitializeIntervalInSeconds, TimeUnit.SECONDS);
+            }
+        }
+    }
+
+    private void startLoggingLifecycle(JedisPoolFactory jedisPoolFactory) {
+        pool = jedisPoolFactory.createPool();
+        client = pool.getResource();
+        pipeline = client.pipelined();
+    }
+
 
     @Override
     protected void append(DeferredProcessingAware event) {
@@ -222,7 +255,19 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
         }, REDIS_SYNC_TIMER_DELAY, REDIS_SYNC_TIMER_PERIOD);
     }
 
-    private void initPool() {
-        pool = new JedisPoolFactory(connectionConfig).createPool();
+    public boolean isRetryOnInitializeError() {
+        return retryOnInitializeError;
+    }
+
+    public void setRetryOnInitializeError(boolean retryOnInitializeError) {
+        this.retryOnInitializeError = retryOnInitializeError;
+    }
+
+    public int getRetryInitializeIntervalInSeconds() {
+        return retryInitializeIntervalInSeconds;
+    }
+
+    public void setRetryInitializeIntervalInSeconds(int retryInitializeIntervalInSeconds) {
+        this.retryInitializeIntervalInSeconds = retryInitializeIntervalInSeconds;
     }
 }

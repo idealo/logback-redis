@@ -2,6 +2,7 @@ package de.idealo.logback.appender;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.core.pattern.PatternLayoutEncoderBase;
 import ch.qos.logback.core.util.StatusPrinter;
 import de.idealo.logback.appender.utils.MDCUtils;
 import org.junit.*;
@@ -99,6 +100,21 @@ public class RedisBatchAppenderEmbeddedIT {
         messageIsSuccessfullyLoggedForSequenceNumber(1);
         messageIsSuccessfullyLoggedForSequenceNumber(2);
         log().info("all messages are successfully logged after redis server was temporarily not available");
+    }
+
+    @Test
+    public void shouldNotFailOnUnreachableRedisServer() {
+        redisServer.stop();
+
+        RedisBatchAppender redisBatchAppender = new RedisBatchAppender();
+        RedisConnectionConfig connectionConfig = new RedisConnectionConfig();
+        connectionConfig.setSentinels("localhost:" + LOCAL_REDIS_PORT);
+        connectionConfig.setScheme(RedisConnectionConfig.RedisScheme.SENTINEL);
+        redisBatchAppender.setConnectionConfig(connectionConfig);
+        redisBatchAppender.setEncoder(new PatternLayoutEncoderBase<>());
+
+        // action
+        redisBatchAppender.start();
     }
 
     private void assertNoMessagesInRedis() {
