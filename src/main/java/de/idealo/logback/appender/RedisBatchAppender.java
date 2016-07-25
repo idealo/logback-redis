@@ -7,10 +7,12 @@ import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.spi.DeferredProcessingAware;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -49,8 +51,9 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     private int     retryInitializeIntervalInSeconds = 30;
     private Encoder<DeferredProcessingAware> encoder;
     private int maxBatchMessages = DEFAULT_MAX_BATCH_MESSAGES;
-    private int maxBatchSeconds = DEFAULT_MAX_BATCH_SECONDS;
+    private int maxBatchSeconds  = DEFAULT_MAX_BATCH_SECONDS;
     private RedisConnectionConfig connectionConfig;
+    private final AtomicInteger connectionStartupCounter = new AtomicInteger();
 
     private Object logger;
 
@@ -83,12 +86,14 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
                 retryExecutorService.scheduleAtFixedRate(new Runnable() {
                     @Override
                     public void run() {
-                        log().error("retry initializing");
+                        log().info("retry initializing");
                         try {
                             startLoggingLifecycle(jedisPoolFactory);
+                            log().info("retry initializing succeded");
                             retryExecutorService.shutdown();
+                            connectionStartupCounter.incrementAndGet();
                         } catch (Exception e) {
-                            log().error("retried initialization failed ");
+                            log().error("retried initialization failed " + e.getMessage(), e);
                         }
                     }
                 }, retryInitializeIntervalInSeconds, retryInitializeIntervalInSeconds, TimeUnit.SECONDS);
@@ -98,18 +103,20 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
 
     private void startLoggingLifecycle(JedisPoolFactory jedisPoolFactory) {
         pool = jedisPoolFactory.createPool();
-        client = pool.getResource();
-        pipeline = client.pipelined();
+        initJedisClient();
     }
-
 
     @Override
     protected void append(DeferredProcessingAware event) {
         try {
-            log().debug("logging to redis: " + String.valueOf(event));
-            appendUnsafe(event);
+            if (pipeline == null) {
+                log().warn("pipeline not ready");
+            } else {
+                log().debug("logging to redis: " + String.valueOf(event));
+                appendUnsafe(event);
+            }
         } catch(JedisConnectionException e) {
-            log().debug("re-create Jedis client and resend event after JedisConnectionException while appending the event '{}'.", event);
+            log().debug("re-create Jedis client and resend event after JedisConnectionException while appending the event '{}'.",event);
 
             try {
                 closeJedisClientGracefully();
@@ -223,7 +230,10 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
         if (log().isDebugEnabled()) {
             long elapsedTime = System.currentTimeMillis() - start;
             double eventsPerSecond = Math.round(MILLIS_PER_SECOND_DOUBLE * batchSize / elapsedTime);
-            log().debug("sent {} events to Redis in {}ms => rate (events per second) = {}", batchSize, elapsedTime, eventsPerSecond);
+            log().debug("sent {} events to Redis in {}ms => rate (events per second) = {}",
+                        batchSize,
+                        elapsedTime,
+                        eventsPerSecond);
         }
         pipeline = client.pipelined();
     }
@@ -269,5 +279,10 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
 
     public void setRetryInitializeIntervalInSeconds(int retryInitializeIntervalInSeconds) {
         this.retryInitializeIntervalInSeconds = retryInitializeIntervalInSeconds;
+    }
+
+    @VisibleForTesting
+    int getConnectionStartupCounter(){
+        return connectionStartupCounter.intValue();
     }
 }
