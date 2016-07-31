@@ -1,21 +1,35 @@
 package de.idealo.logback.appender;
 
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.core.util.StatusPrinter;
-import de.idealo.logback.appender.utils.MDCUtils;
-import org.junit.*;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.slf4j.LoggerFactory;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.embedded.RedisServer;
-import redis.embedded.RedisServerBuilder;
-
+import static java.util.stream.Collectors.joining;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.spy;
+
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.core.pattern.PatternLayoutEncoderBase;
+import ch.qos.logback.core.util.StatusPrinter;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.slf4j.LoggerFactory;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.embedded.RedisCluster;
+import redis.embedded.RedisServer;
+import redis.embedded.RedisServerBuilder;
+import redis.embedded.util.JedisUtil;
+
+import de.idealo.logback.appender.utils.MDCUtils;
 
 /**
  * Integration test that uses an <a href="https://github.com/kstyrc/embedded-redis">embedded redis</a>.
@@ -99,6 +113,69 @@ public class RedisBatchAppenderEmbeddedIT {
         messageIsSuccessfullyLoggedForSequenceNumber(1);
         messageIsSuccessfullyLoggedForSequenceNumber(2);
         log().info("all messages are successfully logged after redis server was temporarily not available");
+    }
+
+    @Test
+    public void shouldNotFailOnUnreachableRedisServer() {
+        redisServer.stop();
+
+        RedisBatchAppender redisBatchAppender = new RedisBatchAppender();
+        redisBatchAppender.setConnectionConfig(getRedisConnectionConfig());
+        redisBatchAppender.setEncoder(new PatternLayoutEncoderBase<>());
+
+        // action
+        redisBatchAppender.start();
+    }
+
+    @Test
+    public void shouldRetryConnectionAfterInterval() throws InterruptedException {
+        RedisCluster cluster = RedisCluster.builder().ephemeral().sentinelCount(3).quorumSize(2)
+                                           .replicationGroup("master1", 1)
+                                           .replicationGroup("master2", 1)
+                                           .replicationGroup("master3", 1)
+                                           .build();
+        cluster.start();
+        Set<String> jedisSentinelHosts = JedisUtil.sentinelHosts(cluster);
+
+        // simulate cluster outage
+        cluster.stop();
+
+        try {
+            RedisConnectionConfig connectionConfig = new RedisConnectionConfig();
+            connectionConfig.setSentinels(jedisSentinelHosts.stream().collect(joining(",")));
+            connectionConfig.setScheme(RedisConnectionConfig.RedisScheme.SENTINEL);
+            connectionConfig.setSentinelMasterName("master1");
+
+            RedisBatchAppender redisBatchAppender = spy(new RedisBatchAppender());
+            redisBatchAppender.setConnectionConfig(connectionConfig);
+            redisBatchAppender.setEncoder(new PatternLayoutEncoderBase<>());
+            redisBatchAppender.setRetryInitializeIntervalInSeconds(1);
+
+            ((Logger) LoggerFactory.getLogger(RedisBatchAppender.class)).setLevel(Level.OFF);
+
+            // action, should fail
+            redisBatchAppender.start();
+            // restart cluster
+            cluster.start();
+
+            TimeUnit.SECONDS.sleep(2);
+
+            assertThat("should succeed one time",redisBatchAppender.getConnectionStartupCounter() == 1);
+            redisBatchAppender.stop();
+        } finally {
+            if (cluster.isActive()) {
+                cluster.stop();
+            }
+        }
+    }
+
+    private static RedisConnectionConfig getRedisConnectionConfig() {
+        RedisConnectionConfig connectionConfig = new RedisConnectionConfig();
+        connectionConfig.setSentinels("localhost," + "127.0.0.1:" + LOCAL_REDIS_PORT);
+        connectionConfig.setScheme(RedisConnectionConfig.RedisScheme.SENTINEL);
+        connectionConfig.setKey("x");
+        connectionConfig.setSentinelMasterName("mymaster");
+        return connectionConfig;
     }
 
     private void assertNoMessagesInRedis() {
