@@ -8,17 +8,15 @@ More specifically, it uses [async appenders](https://github.com/logstash/logstas
 ## Maven dependencies
 ``` xml
 <dependency>
-   <groupId>de.idealo.logback</groupId>
-   <artifactId>logback-redis</artifactId>
-   <version>${logback-redis.version}</version>
-</dependency>
-<dependency>
    <groupId>net.logstash.logback</groupId>
    <artifactId>logstash-logback-encoder</artifactId>
    <version>${logstash-logback-encoder.version}</version>
 </dependency>
 ```
 The current logstash-logback-encoder.version is 4.7.
+
+Note: At the time of writing logback-redis is only available as source code. 
+A binary release to the central repository is in preparation.
 
 ## Configuration
 ### Parameters
