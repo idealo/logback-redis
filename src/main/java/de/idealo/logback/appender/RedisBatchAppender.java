@@ -172,7 +172,9 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
         batchTimer.cancel();
 
         super.stop();
-        pool.destroy();
+        if (pool != null) {
+            pool.destroy();
+        }
     }
 
     public Encoder<DeferredProcessingAware> getEncoder() {
