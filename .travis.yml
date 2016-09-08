@@ -15,6 +15,7 @@ deploy:
   -
     provider: script
     script: .travis/deploy.sh
+    skip_cleanup: true
     on:
       repo: idealo/logback-redis
       branch: prepare-release-to-maven-central
