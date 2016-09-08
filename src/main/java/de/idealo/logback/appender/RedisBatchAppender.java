@@ -1,7 +1,10 @@
 package de.idealo.logback.appender;
 
+import static java.time.temporal.ChronoUnit.SECONDS;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
@@ -56,6 +59,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     private RedisConnectionConfig connectionConfig;
 
     private final AtomicInteger connectionStartupCounter = new AtomicInteger();
+    private Instant lastLog = Instant.now();
 
     @Override
     public void start() {
@@ -103,7 +107,11 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     protected void append(DeferredProcessingAware event) {
         try {
             if (pipeline == null) {
-                LOG.warn("pipeline not ready");
+                Instant now = Instant.now();
+                if (now.minus(30, SECONDS).isAfter(lastLog)) {
+                    LOG.warn("pipeline not ready");
+                    lastLog = now;
+                }
             } else {
                 LOG.debug("logging to redis: {}", String.valueOf(event));
                 appendUnsafe(event);
