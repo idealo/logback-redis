@@ -8,8 +8,7 @@ before_install:
   - echo $GPG_OWNERTRUST | base64 --decode | gpg --import-ownertrust
 install:
   - mvn --settings .travis/settings.xml install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -Prelease
-#script:
-#  - mvn verify
+script: mvn compile
 
 deploy:
   -
