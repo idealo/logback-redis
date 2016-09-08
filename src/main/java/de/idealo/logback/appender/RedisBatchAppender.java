@@ -80,18 +80,15 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
             LOG.error(e.getMessage());
             if (retryOnInitializeError) {
                 retryExecutorService = Executors.newScheduledThreadPool(1);
-                retryExecutorService.scheduleAtFixedRate(new Runnable() {
-                    @Override
-                    public void run() {
-                        LOG.info("retry initializing");
-                        try {
-                            startLoggingLifecycle(jedisPoolFactory);
-                            LOG.info("retry initializing succeded");
-                            retryExecutorService.shutdown();
-                            connectionStartupCounter.incrementAndGet();
-                        } catch (Exception e) {
-                            LOG.error("retried initialization failed " + e.getMessage());
-                        }
+                retryExecutorService.scheduleAtFixedRate(()->{
+                    LOG.info("retry initializing");
+                    try {
+                        startLoggingLifecycle(jedisPoolFactory);
+                        LOG.info("retry initializing succeded");
+                        retryExecutorService.shutdown();
+                        connectionStartupCounter.incrementAndGet();
+                    } catch (Exception e1) {
+                        LOG.error("retried initialization failed " + e1.getMessage());
                     }
                 }, retryInitializeIntervalInSeconds, retryInitializeIntervalInSeconds, TimeUnit.SECONDS);
             }
@@ -124,12 +121,10 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
                 initJedisClient();
                 appendUnsafe(event);
             } catch(Exception exceptionDuringRetry) {
-                // exceptions during retry are logged
                 LOG.error("Exception while retrying to append the event '" + event + "' with a re-initialized Jedis client. The event is lost.",
                           exceptionDuringRetry);
             }
         } catch(Exception e) {
-            // all other exceptions during append are logged
             LOG.error("Exception while appending the event '" + event + "'. The event is lost.", e);
         }
     }
