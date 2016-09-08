@@ -175,6 +175,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
 
     @Override
     public void stop() {
+        LOG.info("stopping");
         // pipeline must be synchronized in order to write the remaining messages to redis
         doAppend(null);
         batchTimer.cancel();
