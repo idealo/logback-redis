@@ -8,6 +8,7 @@
 	<packaging>jar</packaging>
 
 	<name>Logback to Redis Appender</name>
+	<url>https://github.com/idealo/logback-redis</url>
 	<description>Logback to Redis Appender</description>
 
 	<properties>
