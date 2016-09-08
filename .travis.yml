@@ -3,10 +3,23 @@ language: java
 jdk:
   - oraclejdk8
 
+install:
+  - mvn --settings .travis/settings.xml install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+
+before_install:
+  - echo $GPG_SECRET_KEYS | base64 --decode | gpg --import
+  - echo $GPG_OWNERTRUST | base64 --decode | gpg --import-ownertrust
+deploy:
+  -
+    provider: script
+    script: .travis/deploy.sh
+    on:
+      repo: idealo/logback-redis
+      branch: prepare-release-to-maven-central
+      jdk: oraclejdk8
+
 script: mvn verify
 
-# configure notifications (email, IRC, campfire etc)
 notifications:
   email:
-    - christof.danzl@idealo.de
-    - volker.sommerfeld@idealo.de
+    - opensource-logback-redis@idealo.de
