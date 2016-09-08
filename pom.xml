@@ -130,6 +130,7 @@
   <scm>
     <connection>scm:git:ssh://git@github.com/idealo/logback-redis</connection>
     <developerConnection>scm:git:ssh://git@github.com/idealo/logback-redis</developerConnection>
+    <url>scm:git:https://github.com/idealo/logback-redis.git</url>
   </scm>
 
   <build>
