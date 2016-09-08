@@ -3,12 +3,14 @@ language: java
 jdk:
   - oraclejdk8
 
-install:
-  - mvn --settings .travis/settings.xml install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
-
 before_install:
   - echo $GPG_SECRET_KEYS | base64 --decode | gpg --import
   - echo $GPG_OWNERTRUST | base64 --decode | gpg --import-ownertrust
+install:
+  - mvn --settings .travis/settings.xml install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -Prelease
+script:
+  - mvn verify
+
 deploy:
   -
     provider: script
@@ -18,7 +20,6 @@ deploy:
       branch: prepare-release-to-maven-central
       jdk: oraclejdk8
 
-script: mvn verify
 
 notifications:
   email:
