@@ -42,7 +42,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     private static final long REDIS_SYNC_TIMER_PERIOD = 10000L;
     private static final double MILLIS_PER_SECOND_DOUBLE = 1000.0;
 
-    private final Timer batchTimer = new Timer();;
+    private final Timer batchTimer = new Timer();
     private BatchConfig batchConfig;
 
     private Pool<Jedis> pool;
@@ -77,7 +77,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
         try {
             startLoggingLifecycle(jedisPoolFactory);
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            LOG.error(e.getMessage());
             if (retryOnInitializeError) {
                 retryExecutorService = Executors.newScheduledThreadPool(1);
                 retryExecutorService.scheduleAtFixedRate(new Runnable() {
@@ -90,7 +90,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
                             retryExecutorService.shutdown();
                             connectionStartupCounter.incrementAndGet();
                         } catch (Exception e) {
-                            LOG.error("retried initialization failed " + e.getMessage(), e);
+                            LOG.error("retried initialization failed " + e.getMessage());
                         }
                     }
                 }, retryInitializeIntervalInSeconds, retryInitializeIntervalInSeconds, TimeUnit.SECONDS);
