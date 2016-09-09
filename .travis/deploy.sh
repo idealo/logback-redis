@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -e
 
 if [ ! -z "$TRAVIS" -a -f "$HOME/.gnupg" ]; then
     shred -v ~/.gnupg/*
