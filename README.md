@@ -6,7 +6,7 @@ Enables Java applications to log directly to [redis](http://redis.io/) via the [
 
 More specifically, it uses [async appenders](https://github.com/logstash/logstash-logback-encoder#async) and [JSON encoding](https://github.com/logstash/logstash-logback-encoder#composite_encoder) of the [logstash-logback-encoder](https://github.com/logstash/logstash-logback-encoder) project. Messages are sent to redis in [batches](http://redis.io/topics/pipelining) for performance reasons. The [redis sentinel functionality](http://redis.io/topics/sentinel) is supported.
 
-## Maven dependencies (NOT YET PUBLISHED)
+## Maven dependencies
 ``` xml
 <dependency>
    <groupId>de.idealo.logback</groupId>
