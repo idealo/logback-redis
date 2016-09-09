@@ -24,8 +24,3 @@ while(true); do
     date
     gpg --recv-keys ${key} && break || sleep 30
 done
-
-if [ -f "/.dockerenv" ]; then
-    shred -v ~/.gnupg/*
-    rm -rf ~/.gnupg
-fi
