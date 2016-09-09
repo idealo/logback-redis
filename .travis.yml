@@ -3,9 +3,9 @@ language: java
 jdk:
   - oraclejdk8
 
-before_install:
-  - echo $GPG_SECRET_KEYS | base64 --decode | gpg --import
-  - echo $GPG_OWNERTRUST | base64 --decode | gpg --import-ownertrust
+#before_install:
+#  - echo $GPG_SECRET_KEYS | base64 --decode | gpg --import
+#  - echo $GPG_OWNERTRUST | base64 --decode | gpg --import-ownertrust
 install:
   - mvn --settings .travis/settings.xml install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -Prelease
 script: mvn clean verify
