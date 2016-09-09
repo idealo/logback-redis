@@ -2,11 +2,10 @@ language: java
 
 jdk:
   - oraclejdk8
-env:
-  - GPG_KEYNAME=x
-  - GPG_PASSPHRASE=x
 
 install:
+  - export GPG_KEYNAME=x
+  - export GPG_PASSPHRASE=x
   - mvn --settings .travis/settings.xml install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -Prelease
 
 script: mvn --settings .travis/settings.xml clean  verify
