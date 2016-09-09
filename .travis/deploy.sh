@@ -15,7 +15,7 @@ fi
 mvn clean deploy --settings .travis/settings.xml -DskipTests=true -B -U -Prelease
 
 
-if [ ! -z "$TRAVIS" ]; then
-    shred -v ~/.gnupg/*
-    rm -rf ~/.gnupg
-fi
+#if [ ! -z "$TRAVIS" ]; then
+#    shred -v ~/.gnupg/*
+#    rm -rf ~/.gnupg
+#fi
