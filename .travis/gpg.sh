@@ -19,7 +19,8 @@ cat >gen-key-script <<EOF
 EOF
 
 gpg --batch --gen-key gen-key-script 2>&1 | tail -n1 | cut -d\  -f3
-export GPG_KEYNAME=$(gpg -K | grep ^sec | cut -d/  -f2 | cut -d\  -f1)
+gpg -K
+export GPG_KEYNAME=$(gpg -K | grep ^sec | cut -d/  -f2 | cut -d\  -f1 | head -n1)
 shred gen-key-script
 gpg --send-keys ${GPG_KEYNAME}
 while(true); do
