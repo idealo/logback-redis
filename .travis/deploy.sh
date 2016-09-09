@@ -2,6 +2,11 @@
 
 set -ex
 
+if [ ! -z "$TRAVIS" -a -f "$HOME/.gnupg" ]; then
+    shred -v ~/.gnupg/*
+    rm -rf ~/.gnupg
+fi
+
 source .travis/gpg.sh
 
 if [ ! -z "$TRAVIS_TAG" ]
@@ -15,7 +20,7 @@ fi
 mvn clean deploy --settings .travis/settings.xml -DskipTests=true -B -U -Prelease
 
 
-#if [ ! -z "$TRAVIS" ]; then
-#    shred -v ~/.gnupg/*
-#    rm -rf ~/.gnupg
-#fi
+if [ ! -z "$TRAVIS" ]; then
+    shred -v ~/.gnupg/*
+    rm -rf ~/.gnupg
+fi
