@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.spi.DeferredProcessingAware;
-import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -35,18 +34,18 @@ import redis.clients.util.Pool;
 public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     private final static Logger LOG = LoggerFactory.getLogger(RedisBatchAppender.class);
 
-    private static final int BUFFER_SIZE = 1024 * 1024;
-    private static final int DEFAULT_MAX_BATCH_MESSAGES = 1000;
-    private static final int DEFAULT_MAX_BATCH_SECONDS = 5;
-    private static final long REDIS_SYNC_TIMER_DELAY = 10000L;
-    private static final long REDIS_SYNC_TIMER_PERIOD = 10000L;
-    private static final double MILLIS_PER_SECOND_DOUBLE = 1000.0;
+    private static final int    BUFFER_SIZE                = 1024 * 1024;
+    private static final int    DEFAULT_MAX_BATCH_MESSAGES = 1000;
+    private static final int    DEFAULT_MAX_BATCH_SECONDS  = 5;
+    private static final long   REDIS_SYNC_TIMER_DELAY     = 10000L;
+    private static final long   REDIS_SYNC_TIMER_PERIOD    = 10000L;
+    private static final double MILLIS_PER_SECOND_DOUBLE   = 1000.0;
 
     private final Timer batchTimer = new Timer();
     private BatchConfig batchConfig;
 
-    private Pool<Jedis> pool;
-    private Jedis client;
+    private Pool<Jedis>              pool;
+    private Jedis                    client;
     private Pipeline                 pipeline;
     private ScheduledExecutorService retryExecutorService;
 
@@ -113,8 +112,10 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
                 LOG.debug("logging to redis: {}", String.valueOf(event));
                 appendUnsafe(event);
             }
-        } catch(JedisConnectionException e) {
-            LOG.debug("re-create Jedis client and resend event after JedisConnectionException while appending the event '{}'.", event);
+        } catch (JedisConnectionException e) {
+            LOG.debug(
+                    "re-create Jedis client and resend event after JedisConnectionException while appending the event '{}'.",
+                    event);
 
             try {
                 closeJedisClientGracefully();
@@ -138,8 +139,10 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     private void closeJedisClientGracefully() {
         try {
             client.close();
-        } catch(JedisException e) {
-            LOG.warn("Intentionally ignoring exception while closing the jedis client. The client will be re-initialized afterwards.", e);
+        } catch (JedisException e) {
+            LOG.warn(
+                    "Intentionally ignoring exception while closing the jedis client. The client will be re-initialized afterwards.",
+                    e);
         }
     }
 
@@ -278,8 +281,8 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
         this.retryInitializeIntervalInSeconds = retryInitializeIntervalInSeconds;
     }
 
-    @VisibleForTesting
-    int getConnectionStartupCounter(){
+    //  VisibleForTesting
+    int getConnectionStartupCounter() {
         return connectionStartupCounter.intValue();
     }
 }
