@@ -1,9 +1,9 @@
 language: java
 
-#jdk:
-#  - oraclejdk8
+jdk:
+  - oraclejdk8
 
-install: echo test
+install: true
 script: .travis/gpg.sh
 #  - mvn --settings .travis/settings.xml clean  verify
 
