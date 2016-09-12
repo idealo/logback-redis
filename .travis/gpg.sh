@@ -36,7 +36,7 @@ export GPG_KEYNAME=$(gpg -K | grep ^sec | cut -d/  -f2 | cut -d\  -f1 | head -n1
 # cleanup local configuration
 shred gen-key-script
 
-# publish the gpg key (sonatype reads from keyserver.ubuntu.com)
+# publish the gpg key  (sonatype reads from keyserver.ubuntu.com)
 gpg --keyserver keyserver.ubuntu.com --send-keys ${GPG_KEYNAME}
 
 # wait for the key beeing accessible
