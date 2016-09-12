@@ -51,7 +51,8 @@
         </encoder>
     </appender>
 
-    <logger name="de.idealo.logback.appender" level="debug" additivity="false">
+    <logger name="de.idealo.logback.appender.RedisBatchAppender" level="OFF"/>
+    <logger name="de.idealo.logback.appender" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE" />
     </logger>
 
