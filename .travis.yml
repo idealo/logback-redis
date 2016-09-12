@@ -12,7 +12,7 @@ deploy:
     skip_cleanup: true
     on:
       repo: idealo/logback-redis
-      tags: true
+#      tags: true
       jdk: oraclejdk8
 
 
