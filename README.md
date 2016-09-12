@@ -10,7 +10,7 @@ More specifically, it uses [async appenders](https://github.com/logstash/logstas
 ``` xml
 <dependency>
    <groupId>de.idealo.logback</groupId>
-	<artifactId>logback-redis</artifactId>
+   <artifactId>logback-redis</artifactId>
    <version>${version}</version>
 </dependency>
 ```
