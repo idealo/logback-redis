@@ -1,22 +1,22 @@
 language: java
 
-jdk:
-  - oraclejdk8
+#jdk:
+#  - oraclejdk8
 
 script: .travis/gpg.sh
 #  - mvn --settings .travis/settings.xml clean  verify
 
-deploy:
-  -
-    provider: script
-    script: .travis/deploy.sh
-    skip_cleanup: true
-    on:
-      repo: idealo/logback-redis
-      tags: true
-      jdk: oraclejdk8
-
-
-notifications:
-  email:
-    - opensource-logback-redis@idealo.de
+#deploy:
+#  -
+#    provider: script
+#    script: .travis/deploy.sh
+#    skip_cleanup: true
+#    on:
+#      repo: idealo/logback-redis
+#      tags: true
+#      jdk: oraclejdk8
+#
+#
+#notifications:
+#  email:
+#    - opensource-logback-redis@idealo.de
