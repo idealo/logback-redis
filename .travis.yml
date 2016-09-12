@@ -3,21 +3,19 @@ language: java
 jdk:
   - oraclejdk8
 
-install: true
-script: .travis/deploy.sh
-#  - mvn --settings .travis/settings.xml clean  verify
+script: mvn --settings .travis/settings.xml clean  verify
 
-#deploy:
-#  -
-#    provider: script
-#    script: .travis/deploy.sh
-#    skip_cleanup: true
-#    on:
-#      repo: idealo/logback-redis
-#      tags: true
-#      jdk: oraclejdk8
-#
-#
-#notifications:
-#  email:
-#    - opensource-logback-redis@idealo.de
+deploy:
+  -
+    provider: script
+    script: .travis/deploy.sh
+    skip_cleanup: true
+    on:
+      repo: idealo/logback-redis
+      tags: true
+      jdk: oraclejdk8
+
+
+notifications:
+  email:
+    - opensource-logback-redis@idealo.de
