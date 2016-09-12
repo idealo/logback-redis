@@ -11,40 +11,47 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisSentinelPool;
 import redis.clients.util.Pool;
 
+@RunWith(MockitoJUnitRunner.class)
 public class JedisPoolFactoryTest {
 
+    @Spy
+    @InjectMocks
     private JedisPoolFactory jedisPoolFactory;
 
+    @Mock
     private RedisConnectionConfig redisConnectionConfigMock;
+    @Mock
     private JedisPool jedisPoolMock;
+    @Mock
     private JedisSentinelPool jedisSentinelPoolMock;
 
     @Before
     public void setUp() throws Exception {
-        redisConnectionConfigMock = mock(RedisConnectionConfig.class);
+
         when(redisConnectionConfigMock.getDatabase()).thenReturn(0);
         when(redisConnectionConfigMock.getKey()).thenReturn("dummyKey");
         when(redisConnectionConfigMock.getPassword()).thenReturn("secret");
 
-        jedisPoolMock = mock(JedisPool.class);
-        jedisSentinelPoolMock = mock(JedisSentinelPool.class);
-
-        jedisPoolFactory = Mockito.spy(new JedisPoolFactory(redisConnectionConfigMock));
         doReturn(jedisPoolMock).when(jedisPoolFactory).createJedisPool();
         doReturn(jedisSentinelPoolMock).when(jedisPoolFactory).createJedisSentinelPool();
     }
 
     @Test
-    public void aJedisPoolIsCreated() throws Exception {
+    public void ifSchemeIsNode_aJedisPoolIsCreated() throws Exception {
+
         when(redisConnectionConfigMock.getScheme()).thenReturn(RedisConnectionConfig.RedisScheme.NODE);
-        when(redisConnectionConfigMock.getHost()).thenReturn("om-test-02");
-        when(redisConnectionConfigMock.getPort()).thenReturn(6379);
 
         final Pool<Jedis> pool = jedisPoolFactory.createPool();
 
@@ -52,10 +59,9 @@ public class JedisPoolFactoryTest {
     }
 
     @Test
-    public void aJedisSentinelPoolIsCreated() throws Exception {
+    public void ifSchemeIsSentinel_aJedisSentinelPoolIsCreated() throws Exception {
+
         when(redisConnectionConfigMock.getScheme()).thenReturn(RedisConnectionConfig.RedisScheme.SENTINEL);
-        when(redisConnectionConfigMock.getSentinels()).thenReturn("om-test-02:6379, om-test-03:6379");
-        when(redisConnectionConfigMock.getSentinelMasterName()).thenReturn("mymaster");
 
         final Pool<Jedis> pool = jedisPoolFactory.createPool();
 
@@ -64,9 +70,8 @@ public class JedisPoolFactoryTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void anExceptionIsThrownDuringJedisPoolCreationWithNullScheme() throws Exception {
+
         when(redisConnectionConfigMock.getScheme()).thenReturn(null);
-        when(redisConnectionConfigMock.getHost()).thenReturn("om-test-02");
-        when(redisConnectionConfigMock.getPort()).thenReturn(6379);
 
         final Pool<Jedis> pool = jedisPoolFactory.createPool();
 
@@ -75,6 +80,7 @@ public class JedisPoolFactoryTest {
 
     @Test
     public void sentinelsCanBeExtracted() throws Exception {
+
         final Set<String> sentinels = jedisPoolFactory.getSentinels("om-test-02:6379, om-test-03:6379");
 
         assertThat(sentinels, containsInAnyOrder("om-test-02:6379", "om-test-03:6379"));

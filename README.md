@@ -1,5 +1,6 @@
 #Logback Redis Batch Appender 
-[![Build Status](https://travis-ci.com/idealo/logback-redis.svg?token=NwgUMXstLbcSwdjknC8o&branch=master)](https://travis-ci.com/idealo/logback-redis) 
+ [![Build Status](https://travis-ci.org/idealo/logback-redis.svg?branch=master)](https://travis-ci.org/idealo/logback-redis)
+ [![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.idealo.logback/logback-redis/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.idealo.logback/logback-redis) 
 
 Enables Java applications to log directly to [redis](http://redis.io/) via the [jedis](https://github.com/xetorthio/jedis) client as part of centralized logging with the [ELK](https://www.elastic.co/products) stack.
 
@@ -10,15 +11,12 @@ More specifically, it uses [async appenders](https://github.com/logstash/logstas
 <dependency>
    <groupId>de.idealo.logback</groupId>
    <artifactId>logback-redis</artifactId>
-   <version>${logback-redis.version}</version>
-</dependency>
-<dependency>
-   <groupId>net.logstash.logback</groupId>
-   <artifactId>logstash-logback-encoder</artifactId>
-   <version>${logstash-logback-encoder.version}</version>
+   <version>${version}</version>
 </dependency>
 ```
-The current logstash-logback-encoder.version is 4.7.
+
+Note: At the time of writing logback-redis is only available as source code. 
+A binary release to the central repository is in preparation.
 
 ## Configuration
 ### Parameters
@@ -43,7 +41,6 @@ The current logstash-logback-encoder.version is 4.7.
     <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
     <appender name="REDIS_APPENDER" class="net.logstash.logback.appender.LoggingEventAsyncDisruptorAppender">
         <ringBufferSize>131072</ringBufferSize>
-        <waitStrategyType>sleeping</waitStrategyType>
         <appender class="de.idealo.logback.appender.RedisBatchAppender">
             <connectionConfig>
                 <!-- redis sentinel: -->

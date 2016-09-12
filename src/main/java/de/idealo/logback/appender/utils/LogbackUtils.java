@@ -26,10 +26,10 @@ public final class LogbackUtils {
      *
      * Therefore, this method should be called in Spring Boot apps as follows:
      * <pre>
-     * {@literal @}Component
-     * public class LogbackStopListener implements ApplicationListener<ContextClosedEvent> {
-     *   {@literal @}Override
-     *   public void onApplicationEvent(final ContextClosedEvent event) {
+     *{@literal @}Component
+     * public class LogbackStopListener implements ApplicationListener&lt;ContextClosedEvent&gt; {
+     *  {@literal @}Override
+     *   public void onApplicationEvent(ContextClosedEvent event) {
      *     LogbackUtils.stopLogback();
      *   }
      * }
