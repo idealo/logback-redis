@@ -3,7 +3,9 @@ language: java
 jdk:
   - oraclejdk8
 
-script: mvn --settings .travis/settings.xml clean  verify
+script:
+  - .travis/deploy.sh
+#  - mvn --settings .travis/settings.xml clean  verify
 
 deploy:
   -
@@ -12,7 +14,7 @@ deploy:
     skip_cleanup: true
     on:
       repo: idealo/logback-redis
-#      tags: true
+      tags: true
       jdk: oraclejdk8
 
 
