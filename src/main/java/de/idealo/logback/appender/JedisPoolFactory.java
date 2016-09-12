@@ -66,6 +66,6 @@ public class JedisPoolFactory {
     }
 
     Set<String> getSentinels(String sentinelsAsString) {
-        return Stream.of(sentinelsAsString.split(",")).map(sentinel -> sentinel.trim()).collect(Collectors.toSet());
+        return Stream.of(sentinelsAsString.split(",")).map(String::trim).collect(Collectors.toSet());
     }
 }

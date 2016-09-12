@@ -1,7 +1,10 @@
 package de.idealo.logback.appender;
 
+import static java.time.temporal.ChronoUnit.SECONDS;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
@@ -39,7 +42,6 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     private static final double MILLIS_PER_SECOND_DOUBLE   = 1000.0;
 
     private final Timer batchTimer = new Timer();
-    ;
     private BatchConfig batchConfig;
 
     private Pool<Jedis>              pool;
@@ -56,6 +58,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     private RedisConnectionConfig connectionConfig;
 
     private final AtomicInteger connectionStartupCounter = new AtomicInteger();
+    private Instant lastLog = Instant.now();
 
     @Override
     public void start() {
@@ -73,21 +76,18 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
         try {
             startLoggingLifecycle(jedisPoolFactory);
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            LOG.error(e.getMessage());
             if (retryOnInitializeError) {
                 retryExecutorService = Executors.newScheduledThreadPool(1);
-                retryExecutorService.scheduleAtFixedRate(new Runnable() {
-                    @Override
-                    public void run() {
-                        LOG.info("retry initializing");
-                        try {
-                            startLoggingLifecycle(jedisPoolFactory);
-                            LOG.info("retry initializing succeded");
-                            retryExecutorService.shutdown();
-                            connectionStartupCounter.incrementAndGet();
-                        } catch (Exception e) {
-                            LOG.error("retried initialization failed " + e.getMessage(), e);
-                        }
+                retryExecutorService.scheduleAtFixedRate(()->{
+                    LOG.info("retry initializing");
+                    try {
+                        startLoggingLifecycle(jedisPoolFactory);
+                        LOG.info("retry initializing succeded");
+                        retryExecutorService.shutdown();
+                        connectionStartupCounter.incrementAndGet();
+                    } catch (Exception e1) {
+                        LOG.error("retried initialization failed " + e1.getMessage());
                     }
                 }, retryInitializeIntervalInSeconds, retryInitializeIntervalInSeconds, TimeUnit.SECONDS);
             }
@@ -103,7 +103,11 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     protected void append(DeferredProcessingAware event) {
         try {
             if (pipeline == null) {
-                LOG.warn("pipeline not ready");
+                Instant now = Instant.now();
+                if (now.minus(30, SECONDS).isAfter(lastLog)) {
+                    LOG.warn("pipeline not ready");
+                    lastLog = now;
+                }
             } else {
                 LOG.debug("logging to redis: {}", String.valueOf(event));
                 appendUnsafe(event);
@@ -117,13 +121,11 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
                 closeJedisClientGracefully();
                 initJedisClient();
                 appendUnsafe(event);
-            } catch (Exception exceptionDuringRetry) {
-                // exceptions during retry are logged
+            } catch(Exception exceptionDuringRetry) {
                 LOG.error("Exception while retrying to append the event '" + event + "' with a re-initialized Jedis client. The event is lost.",
                           exceptionDuringRetry);
             }
-        } catch (Exception e) {
-            // all other exceptions during append are logged
+        } catch(Exception e) {
             LOG.error("Exception while appending the event '" + event + "'. The event is lost.", e);
         }
     }
@@ -171,6 +173,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
 
     @Override
     public void stop() {
+        LOG.info("stopping");
         // pipeline must be synchronized in order to write the remaining messages to redis
         doAppend(null);
         batchTimer.cancel();
