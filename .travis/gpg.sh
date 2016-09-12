@@ -10,8 +10,8 @@ cat >gen-key-script <<EOF
       Key-Length: 4096
       Subkey-Type: 1
       Subkey-Length: 4096
-      Name-Real: test
-      Name-Email: test@foo.bar
+      Name-Real: Opensource Idealo
+      Name-Email: opensource-logback-redis@idealo.de
       Expire-Date: 2y
       Passphrase: ${GPG_PASSPHRASE}
       %commit
@@ -19,7 +19,6 @@ cat >gen-key-script <<EOF
 EOF
 
 gpg --batch --gen-key gen-key-script 2>&1 | tail -n1 | cut -d\  -f3
-gpg -K
 export GPG_KEYNAME=$(gpg -K | grep ^sec | cut -d/  -f2 | cut -d\  -f1 | head -n1)
 shred gen-key-script
 gpg --send-keys ${GPG_KEYNAME}
