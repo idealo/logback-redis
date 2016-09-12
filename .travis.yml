@@ -3,10 +3,19 @@ language: java
 jdk:
   - oraclejdk8
 
-script: mvn verify
+script: mvn --settings .travis/settings.xml clean  verify
 
-# configure notifications (email, IRC, campfire etc)
+deploy:
+  -
+    provider: script
+    script: .travis/deploy.sh
+    skip_cleanup: true
+    on:
+      repo: idealo/logback-redis
+      branch: master
+      jdk: oraclejdk8
+
+
 notifications:
   email:
-    - christof.danzl@idealo.de
-    - volker.sommerfeld@idealo.de
+    - opensource-logback-redis@idealo.de
