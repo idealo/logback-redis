@@ -19,6 +19,46 @@ Note: At the time of writing logback-redis is only available as source code.
 A binary release to the central repository is in preparation.
 
 ## Configuration
+### Simple Configuration 
+```xml
+<configuration>
+    ...
+    <appender name="REDIS" class="net.logstash.logback.appender.LoggingEventAsyncDisruptorAppender">
+        <appender class="de.idealo.logback.appender.RedisBatchAppender">
+            <connectionConfig>
+                <scheme>SENTINEL</scheme>
+                <sentinelMasterName>${sentinel.master.name}</sentinelMasterName>
+                <sentinels>${sentinel.host.list}</sentinels>
+                <key>${sentinel.key}</key>
+            </connectionConfig>
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <arguments/>
+                    <mdc/>
+                    <pattern>
+                        <pattern>
+                            {
+                            "@stage":"${STAGE}",
+                            "app": "${projectName}",
+                            "host": "${HOSTNAME}",
+                            "key" : "userservices",
+                            "level": "%level",
+                            "logger": "%logger",
+                            "message": "%message",
+                            "thread": "%thread",
+                            "timestamp": "%d{yyyy-MM-dd'T'HH:mm:ss.SSSZZ}"
+                            }
+                        </pattern>
+                    </pattern>
+                    <stackTrace/>
+                </providers>
+            </encoder>
+        </appender>
+    </appender>
+    ...
+</configuration>
+```
+
 ### Parameters
 * connectionConfig:
     * key: key under which messages are stored in redis
@@ -34,7 +74,7 @@ A binary release to the central repository is in preparation.
 * encoder: encoder for JSON formatting of the messages
 * ringBuffer and waitStrategyType determine [how the logstash-logback-encoder asynchronously processes the messages](https://github.com/logstash/logstash-logback-encoder#async). Note that messages may be lost if the ring buffer size is too small (["If the RingBuffer is full (e.g. due to slow network, etc), then events will be dropped."](https://github.com/logstash/logstash-logback-encoder#async)).  
 
-### Example Configuration
+### Extended Configuration
 ``` xml
 <?xml version="1.0" encoding="UTF-8"?>
 <included>
