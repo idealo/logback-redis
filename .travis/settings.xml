@@ -29,7 +29,7 @@
             <id>internal-repository</id>
             <name>Maven Repository Manager running on google.com</name>
             <url>https://maven-central.storage.googleapis.com</url>
-            <mirrorOf>*</mirrorOf>
+            <mirrorOf>central</mirrorOf>
         </mirror>
     </mirrors>
 </settings>
