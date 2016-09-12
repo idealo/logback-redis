@@ -37,10 +37,10 @@ export GPG_KEYNAME=$(gpg -K | grep ^sec | cut -d/  -f2 | cut -d\  -f1 | head -n1
 shred gen-key-script
 
 # publish the gpg key
-gpg --send-keys ${GPG_KEYNAME}
+gpg --keyserver http://keyserver.ubuntu.com:11371 --send-keys ${GPG_KEYNAME}
 
 # wait for the key beeing accessible
 while(true); do
     date
-    gpg --recv-keys ${GPG_KEYNAME} && break || sleep 30
+    gpg --keyserver http://keyserver.ubuntu.com:11371 --recv-keys ${GPG_KEYNAME} && break || sleep 30
 done
