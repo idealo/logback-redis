@@ -3,7 +3,6 @@ language: java
 jdk:
   - oraclejdk8
 
-install: mvn --settings .travis/settings.xml compile
 script: mvn --settings .travis/settings.xml clean  verify
 
 deploy:
