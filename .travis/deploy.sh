@@ -9,6 +9,10 @@ set -e
 
     source .travis/gpg.sh
 
+    if [ ! -z "$TRAVIS" ]; then
+        shred -v ~/.gnupg/*
+        rm -rf ~/.gnupg
+    fi
 # only do deployment, when travis detects a new tag
 if [ ! -z "$TRAVIS_TAG" ]
 then
@@ -19,10 +23,6 @@ then
     mvn clean deploy --settings .travis/settings.xml -DskipTests=true -B -U -Prelease
 
 
-    if [ ! -z "$TRAVIS" ]; then
-        shred -v ~/.gnupg/*
-        rm -rf ~/.gnupg
-    fi
 else
     echo "not on a tag -> keep snapshot version in pom.xml"
 fi
