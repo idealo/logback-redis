@@ -11,12 +11,9 @@ More specifically, it uses [async appenders](https://github.com/logstash/logstas
 <dependency>
    <groupId>de.idealo.logback</groupId>
    <artifactId>logback-redis</artifactId>
-   <version>${version}</version>
+   <version>0.9.3</version>
 </dependency>
 ```
-
-Note: At the time of writing logback-redis is only available as source code. 
-A binary release to the central repository is in preparation.
 
 ## Configuration
 ### Simple Configuration 
