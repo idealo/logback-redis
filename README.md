@@ -15,6 +15,16 @@ More specifically, it uses [async appenders](https://github.com/logstash/logstas
 </dependency>
 ```
 
+used best in conjuction with
+
+```xml
+<dependency>
+   <groupId>net.logstash.logback</groupId>
+   <artifactId>logstash-logback-encoder</artifactId>
+   <version>4.7</version>
+</dependency>      
+```
+
 ## Configuration
 ### Simple Configuration 
 ```xml
