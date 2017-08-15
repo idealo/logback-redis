@@ -21,7 +21,7 @@ used best in conjuction with
 <dependency>
    <groupId>net.logstash.logback</groupId>
    <artifactId>logstash-logback-encoder</artifactId>
-   <version>4.7</version>
+   <version>4.11</version>
 </dependency>      
 ```
 
