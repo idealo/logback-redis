@@ -44,3 +44,6 @@ while(true); do
     date
     gpg --keyserver keyserver.ubuntu.com --recv-keys ${GPG_KEYNAME} && break || sleep 30
 done
+
+echo wait for 2minutes to let the key being synced
+sleep 120 
