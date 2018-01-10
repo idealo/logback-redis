@@ -1,4 +1,4 @@
-#Logback Redis Batch Appender 
+# Logback Redis Batch Appender 
  [![Build Status](https://travis-ci.org/idealo/logback-redis.svg?branch=master)](https://travis-ci.org/idealo/logback-redis)
  [![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.idealo.logback/logback-redis/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.idealo.logback/logback-redis) 
 
