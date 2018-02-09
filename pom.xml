@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.idealo.logback</groupId>
   <artifactId>logback-redis</artifactId>
-  <version>0.9.0-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Logback to Redis Appender</name>
@@ -25,9 +25,9 @@
       <url>http://www.idealo.de</url>
     </developer>
     <developer>
-      <id>lars.gohlke</id>
-      <name>Lars K.W. Gohlke</name>
-      <email>lars.gohlke@idealo.de</email>
+      <id>andre.doernbrack</id>
+      <name>Andre Dörnbrack</name>
+      <email>andre.doernbrack@idealo.de</email>
       <url>http://www.idealo.de</url>
     </developer>
   </developers>
@@ -74,7 +74,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.1.7</version>
+      <version>1.2.3</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

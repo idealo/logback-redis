@@ -34,7 +34,6 @@ import redis.clients.util.Pool;
 public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     private final static Logger LOG = LoggerFactory.getLogger(RedisBatchAppender.class);
 
-    private static final int    BUFFER_SIZE                = 1024 * 1024;
     private static final int    DEFAULT_MAX_BATCH_MESSAGES = 1000;
     private static final int    DEFAULT_MAX_BATCH_SECONDS  = 5;
     private static final long   REDIS_SYNC_TIMER_DELAY     = 10000L;
@@ -246,11 +245,8 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     }
 
     private String createEncodedEvent(DeferredProcessingAware event) {
-        try (ByteArrayOutputStream eventOutputStream = new ByteArrayOutputStream(BUFFER_SIZE)) {
-            encoder.init(eventOutputStream);
-            encoder.doEncode(event);
-
-            return eventOutputStream.toString("UTF-8");
+        try {
+            return new String(encoder.encode(event), "UTF-8");
         } catch (IOException e) {
             throw new IllegalStateException("error while initializing the event encoder", e);
         }
