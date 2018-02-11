@@ -13,22 +13,13 @@
 
   <developers>
     <developer>
-      <id>christof.danzl</id>
-      <name>Christof Danzl</name>
-      <email>christof.danzl@idealo.de</email>
-      <url>http://www.idealo.de</url>
-    </developer>
-    <developer>
-      <id>Volker Sommerfeld</id>
-      <name>Volker Sommerfeld</name>
-      <email>Volker.Sommerfeld@idealo.de</email>
-      <url>http://www.idealo.de</url>
-    </developer>
-    <developer>
       <id>andre.doernbrack</id>
       <name>Andre Dörnbrack</name>
       <email>andre.doernbrack@idealo.de</email>
       <url>http://www.idealo.de</url>
+      <roles>
+        <role>maintainer</role>
+      </roles>  
     </developer>
   </developers>
 
