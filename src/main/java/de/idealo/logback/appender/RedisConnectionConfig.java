@@ -13,6 +13,7 @@ public class RedisConnectionConfig {
     private int timeout = Protocol.DEFAULT_TIMEOUT;
     private String password = null;
     private int database = Protocol.DEFAULT_DATABASE;
+    private boolean ssl = false;
     private String sentinels;
     private String sentinelMasterName;
 
@@ -87,6 +88,10 @@ public class RedisConnectionConfig {
     public void setSentinelMasterName(String sentinelMasterName) {
         this.sentinelMasterName = sentinelMasterName;
     }
+
+    public boolean isSsl() { return ssl; }
+
+    public void setSsl(boolean ssl) { this.ssl = ssl; }
 
     public enum RedisScheme {
         NODE, SENTINEL;
