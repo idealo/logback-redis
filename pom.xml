@@ -21,6 +21,23 @@
         <role>maintainer</role>
       </roles>  
     </developer>
+    <developer>
+      <id>martin.gerlach</id>
+      <name>Martin Gerlach</name>
+      <email>martin.gerlach@idealo.de</email>
+      <url>http://www.idealo.de</url>
+      <roles>
+        <role>maintainer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>lkwg82</id>
+      <name>Lars K.W. Gohlke</name>
+      <email>lkwg82@gmx.de</email>
+      <roles>
+        <role>maintainer</role>
+      </roles>
+    </developer>
   </developers>
 
   <licenses>
