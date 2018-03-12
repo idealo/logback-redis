@@ -56,7 +56,7 @@ public class JedisPoolFactory {
 
     Pool<Jedis> createJedisPool() {
         return new JedisPool(objectPoolConfig, connectionConfig.getHost(), connectionConfig.getPort(),
-                connectionConfig.getTimeout(), connectionConfig.getPassword(), connectionConfig.getDatabase());
+                connectionConfig.getTimeout(), connectionConfig.getPassword(), connectionConfig.getDatabase(), connectionConfig.isSsl());
     }
 
     Pool<Jedis> createJedisSentinelPool() {
