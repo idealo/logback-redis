@@ -13,13 +13,30 @@
 
   <developers>
     <developer>
-      <id>andre.doernbrack</id>
+      <id>doernbrackandre</id>
       <name>Andre Dörnbrack</name>
       <email>andre.doernbrack@idealo.de</email>
       <url>http://www.idealo.de</url>
       <roles>
         <role>maintainer</role>
-      </roles>  
+      </roles>
+    </developer>
+    <developer>
+      <id>mgerlach</id>
+      <name>Martin Gerlach</name>
+      <email>martin.gerlach@idealo.de</email>
+      <url>http://www.idealo.de</url>
+      <roles>
+        <role>maintainer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>lkwg82</id>
+      <name>Lars K.W. Gohlke</name>
+      <email>lkwg82@gmx.de</email>
+      <roles>
+        <role>contributor</role>
+      </roles>
     </developer>
   </developers>
 
