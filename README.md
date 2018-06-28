@@ -37,6 +37,7 @@ used best in conjuction with
                 <sentinelMasterName>${sentinel.master.name}</sentinelMasterName>
                 <sentinels>${sentinel.host.list}</sentinels>
                 <key>${sentinel.key}</key>
+                <ssl>${redis.ssl}</ssl> <!-- false (default) or true -->
             </connectionConfig>
             <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
                 <providers>
