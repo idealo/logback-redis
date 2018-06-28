@@ -11,7 +11,7 @@ More specifically, it uses [async appenders](https://github.com/logstash/logstas
 <dependency>
    <groupId>de.idealo.logback</groupId>
    <artifactId>logback-redis</artifactId>
-   <version>1.0.0</version>
+   <version>1.1.0</version>
 </dependency>
 ```
 
@@ -21,7 +21,7 @@ used best in conjuction with
 <dependency>
    <groupId>net.logstash.logback</groupId>
    <artifactId>logstash-logback-encoder</artifactId>
-   <version>4.11</version>
+   <version>5.1</version>
 </dependency>      
 ```
 
