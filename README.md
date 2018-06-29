@@ -77,6 +77,7 @@ used best in conjuction with
     * for scheme=NODE:
         * host: redis host
         * port: redis port
+    * ssl: Whether to use SSL to communicate with redis (false or true, default is false). Your client and server certificates must be set up correctly.
 * maxBatchMessages: number of messages which are sent as batch size to redis
 * maxBatchSeconds: time interval in seconds after a batch of messages is sent to redis if the batch size is not reached 
 * encoder: encoder for JSON formatting of the messages
