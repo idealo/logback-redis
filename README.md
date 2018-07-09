@@ -86,7 +86,7 @@ used best in conjuction with
 ### Extended Configuration
 ``` xml
 <?xml version="1.0" encoding="UTF-8"?>
-<included>
+<configuration>
     <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
     <appender name="REDIS_APPENDER" class="net.logstash.logback.appender.LoggingEventAsyncDisruptorAppender">
         <ringBufferSize>131072</ringBufferSize>
@@ -134,7 +134,8 @@ used best in conjuction with
             </encoder>
         </appender>
     </appender>
-</included>
+    ...
+</configuration>
 ```
     
 This appender configuration can either be included in a logback.xml file (via "included" tag) or be directly contained in a logback.xml (without "included" tag).
