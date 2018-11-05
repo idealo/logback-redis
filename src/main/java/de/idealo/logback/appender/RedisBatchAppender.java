@@ -2,7 +2,6 @@ package de.idealo.logback.appender;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Timer;
@@ -32,7 +31,7 @@ import redis.clients.util.Pool;
  * @see <a href="http://logback.qos.ch/manual/appenders.html">logback appender documentation</a>
  */
 public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
-    private final static Logger LOG = LoggerFactory.getLogger(RedisBatchAppender.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RedisBatchAppender.class);
 
     private static final int    DEFAULT_MAX_BATCH_MESSAGES = 1000;
     private static final int    DEFAULT_MAX_BATCH_SECONDS  = 5;
@@ -40,13 +39,12 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     private static final long   REDIS_SYNC_TIMER_PERIOD    = 10000L;
     private static final double MILLIS_PER_SECOND_DOUBLE   = 1000.0;
 
-    private final Timer batchTimer = new Timer();
+    private final Timer batchTimer = new Timer(true);
     private BatchConfig batchConfig;
 
     private Pool<Jedis>              pool;
     private Jedis                    client;
     private Pipeline                 pipeline;
-    private ScheduledExecutorService retryExecutorService;
 
     // logger configurable options
     private boolean retryOnInitializeError           = true;
@@ -77,7 +75,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
         } catch (Exception e) {
             LOG.error(e.getMessage());
             if (retryOnInitializeError) {
-                retryExecutorService = Executors.newScheduledThreadPool(1);
+                final ScheduledExecutorService retryExecutorService = Executors.newScheduledThreadPool(1);
                 retryExecutorService.scheduleAtFixedRate(()->{
                     LOG.info("retry initializing");
                     try {
@@ -86,7 +84,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
                         retryExecutorService.shutdown();
                         connectionStartupCounter.incrementAndGet();
                     } catch (Exception e1) {
-                        LOG.error("retried initialization failed " + e1.getMessage());
+                        LOG.error("retried initialization failed {}", e1.getMessage());
                     }
                 }, retryInitializeIntervalInSeconds, retryInitializeIntervalInSeconds, TimeUnit.SECONDS);
             }
@@ -108,7 +106,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
                     lastLog = now;
                 }
             } else {
-                LOG.debug("logging to redis: {}", String.valueOf(event));
+                LOG.debug("logging to redis: {}", event);
                 appendUnsafe(event);
             }
         } catch (JedisConnectionException e) {
