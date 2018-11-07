@@ -5,8 +5,6 @@ import java.util.concurrent.TimeUnit;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.spi.DeferredProcessingAware;
-import redis.clients.jedis.Jedis;
-import redis.clients.util.Pool;
 
 /**
  * Logback appender that writes logging events in batches to redis.
@@ -31,8 +29,8 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     @Override
     public void start() {
         super.start();
-        final Pool<Jedis> jedisPool = JEDIS_POOL_FACTORY.createPool(connectionConfig);
-        final JedisClient client = new JedisClient(jedisPool,
+        final JedisClientProvider clientProvider = new JedisClientProvider(JEDIS_POOL_FACTORY, connectionConfig);
+        final JedisClient client = new JedisClient(clientProvider,
                 retryOnInitializeError ? Integer.MAX_VALUE : 1,
                 TimeUnit.SECONDS.toMillis(retryInitializeIntervalInSeconds));
 

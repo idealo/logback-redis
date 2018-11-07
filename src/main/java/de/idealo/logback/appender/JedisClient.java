@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.exceptions.JedisException;
-import redis.clients.util.Pool;
 
 public class JedisClient implements Closeable {
     /*
@@ -24,16 +23,16 @@ public class JedisClient implements Closeable {
      * creating an final static field at this time may result in a null reference
      */
     private final Logger log;
-    private final Pool<Jedis> pool;
+    private final JedisClientProvider clientProvider;
     private final long retryInitializeIntervalMillis;
 
     private Jedis client;
     private volatile boolean initializing;
     private volatile boolean shutdown;
 
-    JedisClient(Pool<Jedis> pool, int maxInitFailureRetries, long retryInitializeIntervalMillis) {
+    JedisClient(JedisClientProvider clientProvider, int maxInitFailureRetries, long retryInitializeIntervalMillis) {
+        this.clientProvider = clientProvider;
         log = LoggerFactory.getLogger(JedisClient.class);
-        this.pool = pool;
         this.retryInitializeIntervalMillis = retryInitializeIntervalMillis;
         initializing = true;
         initClient(maxInitFailureRetries);
@@ -61,7 +60,7 @@ public class JedisClient implements Closeable {
     @Override
     public void close() {
         shutdown = true;
-        pool.close();
+        clientProvider.close();
     }
 
     boolean isInitializing() {
@@ -99,11 +98,6 @@ public class JedisClient implements Closeable {
     }
 
     private Jedis getValidClientOrNull() {
-        try {
-            return pool.getResource();
-        } catch (Exception ex) {
-            log.warn("unable to get client from pool", ex);
-            return null;
-        }
+        return clientProvider.getJedisClient().orElse(null);
     }
 }
