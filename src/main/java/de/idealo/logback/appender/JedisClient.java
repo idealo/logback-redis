@@ -1,5 +1,7 @@
 package de.idealo.logback.appender;
 
+import static de.idealo.logback.appender.utils.ThreadUtils.createThread;
+
 import java.io.Closeable;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -27,6 +29,7 @@ public class JedisClient implements Closeable {
 
     private Jedis client;
     private volatile boolean initializing;
+    private volatile boolean shutdown;
 
     JedisClient(Pool<Jedis> pool, int maxInitFailureRetries, long retryInitializeIntervalMillis) {
         log = LoggerFactory.getLogger(JedisClient.class);
@@ -57,7 +60,12 @@ public class JedisClient implements Closeable {
 
     @Override
     public void close() {
+        shutdown = true;
         pool.close();
+    }
+
+    boolean isInitializing() {
+        return initializing;
     }
 
     private void initClient(int maxTries) {
@@ -69,7 +77,9 @@ public class JedisClient implements Closeable {
             initializing = false;
             return;
         }
-        final ScheduledExecutorService retryExecutorService = Executors.newScheduledThreadPool(1);
+        final ScheduledExecutorService retryExecutorService = Executors.newScheduledThreadPool(1,
+                runnable -> createThread(runnable, getClass().getSimpleName(), true));
+
         final AtomicInteger currentTry = new AtomicInteger(1);
         retryExecutorService.scheduleAtFixedRate(
                 () -> retryConnect(retryExecutorService, currentTry, maxTries),
@@ -82,7 +92,7 @@ public class JedisClient implements Closeable {
         currentTry.incrementAndGet();
         log.info("connect retry {}", currentTry);
         client = getValidClientOrNull();
-        if (client != null || currentTry.get() >= maxTries) {
+        if (client != null || currentTry.get() >= maxTries || shutdown) {
             initializing = false;
             retryExecutorService.shutdown();
         }

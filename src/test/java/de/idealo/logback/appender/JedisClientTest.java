@@ -1,6 +1,7 @@
 package de.idealo.logback.appender;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -138,6 +140,24 @@ public class JedisClientTest {
 
             verify(firstInitTryResult).close();
             assertEquals(reconnectPipeline, jedisClient.getPipeline().orElse(null));
+        }
+    }
+
+    @Test
+    public void testStopInitOnShutdown() throws InterruptedException {
+        final int initRetryMillis = 50;
+        when(pool.getResource()).thenThrow(new RuntimeException());
+        try (JedisClient jedisClient = new JedisClient(pool, Integer.MAX_VALUE, initRetryMillis)) {
+
+            assertTrue(jedisClient.isInitializing());
+
+            TimeUnit.MILLISECONDS.sleep(3 * initRetryMillis);
+            assertTrue(jedisClient.isInitializing());
+
+            jedisClient.close();
+
+            TimeUnit.MILLISECONDS.sleep(initRetryMillis);
+            Assert.assertFalse(jedisClient.isInitializing());
         }
     }
 

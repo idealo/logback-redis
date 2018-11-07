@@ -1,5 +1,7 @@
 package de.idealo.logback.appender;
 
+import static de.idealo.logback.appender.utils.ThreadUtils.createThread;
+
 import java.io.Closeable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -58,7 +60,9 @@ public class BufferedJedisWriter implements Closeable {
         shutdown = false;
         bufferedEvents = new LinkedBlockingQueue<>();
         lastFlushEpochMillis = new AtomicLong(System.currentTimeMillis());
-        bufferFlusher = getBufferFlusher();
+
+        bufferFlusher = createThread(this::flushPeriodically, getClass().getSimpleName(), true);
+        bufferFlusher.start();
     }
 
     public void append(DeferredProcessingAware event) {
@@ -147,30 +151,23 @@ public class BufferedJedisWriter implements Closeable {
         return flusherThreadActions.get();
     }
 
-    private Thread getBufferFlusher() {
-        Thread thread = new Thread(this::flushPeriodically);
-        thread.setDaemon(true);
-        thread.start();
-        return thread;
-    }
-
     @SuppressWarnings("squid:S2142")
     private void flushPeriodically() {
         while (!shutdown) {
             try {
-                final long waitForSyncMillis = maxBatchWaitMillis - (System.currentTimeMillis() - lastFlushEpochMillis.get());
-                if (waitForSyncMillis <= 0) {
+                final long flushWaitMillis = maxBatchWaitMillis - (System.currentTimeMillis() - lastFlushEpochMillis.get());
+                if (flushWaitMillis <= 0) {
                     flushBuffer();
                     flusherThreadActions.incrementAndGet();
                 } else {
-                    TimeUnit.MILLISECONDS.sleep(waitForSyncMillis);
+                    TimeUnit.MILLISECONDS.sleep(flushWaitMillis);
                 }
             } catch (InterruptedException ex) {
                 // ignores InterruptedException by purpose, shutdown must be set to stop it
                 // setting interrupt flag would break sleep method
                 log.trace("ignoring thread interruption", ex);
             } catch (Exception ex) {
-                log.warn("unexpected excepetion occured while running flushing thread", ex);
+                log.warn("unexpected exception occured while running flushing thread", ex);
             }
         }
     }
