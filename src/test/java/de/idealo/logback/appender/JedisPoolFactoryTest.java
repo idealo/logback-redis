@@ -4,17 +4,16 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -44,8 +43,8 @@ public class JedisPoolFactoryTest {
         when(redisConnectionConfigMock.getKey()).thenReturn("dummyKey");
         when(redisConnectionConfigMock.getPassword()).thenReturn("secret");
 
-        doReturn(jedisPoolMock).when(jedisPoolFactory).createJedisPool();
-        doReturn(jedisSentinelPoolMock).when(jedisPoolFactory).createJedisSentinelPool();
+        doReturn(jedisPoolMock).when(jedisPoolFactory).createJedisPool(redisConnectionConfigMock);
+        doReturn(jedisSentinelPoolMock).when(jedisPoolFactory).createJedisSentinelPool(redisConnectionConfigMock);
     }
 
     @Test
@@ -53,7 +52,7 @@ public class JedisPoolFactoryTest {
 
         when(redisConnectionConfigMock.getScheme()).thenReturn(RedisConnectionConfig.RedisScheme.NODE);
 
-        final Pool<Jedis> pool = jedisPoolFactory.createPool();
+        final Pool<Jedis> pool = jedisPoolFactory.createPool(redisConnectionConfigMock);
 
         assertThat(pool, is(instanceOf(JedisPool.class)));
     }
@@ -63,7 +62,7 @@ public class JedisPoolFactoryTest {
 
         when(redisConnectionConfigMock.getScheme()).thenReturn(RedisConnectionConfig.RedisScheme.SENTINEL);
 
-        final Pool<Jedis> pool = jedisPoolFactory.createPool();
+        final Pool<Jedis> pool = jedisPoolFactory.createPool(redisConnectionConfigMock);
 
         assertThat(pool, is(instanceOf(JedisSentinelPool.class)));
     }
@@ -73,7 +72,7 @@ public class JedisPoolFactoryTest {
 
         when(redisConnectionConfigMock.getScheme()).thenReturn(null);
 
-        final Pool<Jedis> pool = jedisPoolFactory.createPool();
+        final Pool<Jedis> pool = jedisPoolFactory.createPool(redisConnectionConfigMock);
 
         assertThat(pool, is(instanceOf(JedisPool.class)));
     }

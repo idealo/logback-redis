@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration scan="true" scanPeriod="30 seconds">
+<configuration debug="false" scan="true" scanPeriod="30 seconds">
 
     <appender name="REDIS_APPENDER" class="de.idealo.logback.appender.RedisBatchAppender">
         <connectionConfig>
@@ -15,6 +15,7 @@
         </connectionConfig>
         <maxBatchMessages>1</maxBatchMessages>
         <maxBatchSeconds>10</maxBatchSeconds>
+        <retryInitializeIntervalInSeconds>1</retryInitializeIntervalInSeconds>
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>
                 <mdc/>
@@ -36,10 +37,6 @@
         </encoder>
     </appender>
 
-    <logger name="LoggingTest" level="info" additivity="false">
-        <appender-ref ref="REDIS_APPENDER" />
-    </logger>
-
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <Pattern>
@@ -51,9 +48,14 @@
         </encoder>
     </appender>
 
-    <logger name="de.idealo.logback.appender.RedisBatchAppender" level="OFF"/>
-    <logger name="de.idealo.logback.appender" level="INFO" additivity="false">
-        <appender-ref ref="CONSOLE" />
+    <logger name="LoggingTest" level="info" additivity="false">
+        <appender-ref ref="REDIS_APPENDER" />
     </logger>
+
+    <logger name="de.idealo.logback.appender" level="OFF" additivity="false"/>
+    
+	<root level="error">
+		<appender-ref ref="CONSOLE" />
+	</root>
 
 </configuration>
