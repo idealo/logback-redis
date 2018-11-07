@@ -31,7 +31,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     @Override
     public void start() {
         super.start();
-        final Pool<Jedis> jedisPool = JEDIS_POOL_FACTORY.createJedisPool(connectionConfig);
+        final Pool<Jedis> jedisPool = JEDIS_POOL_FACTORY.createPool(connectionConfig);
         final JedisClient client = new JedisClient(jedisPool,
                 retryOnInitializeError ? Integer.MAX_VALUE : 1,
                 TimeUnit.SECONDS.toMillis(retryInitializeIntervalInSeconds));
