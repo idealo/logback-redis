@@ -34,26 +34,33 @@ public class JedisClientProviderTest {
     }
 
     @Test
-    public void testEmptyOptionalOnPoolCreationError() {
+    public void empty_optional_on_error_creating_pool() {
         when(poolFactory.createPool(Matchers.any())).thenThrow(new RuntimeException());
         assertEquals(null, clientProvider.getJedisClient().orElse(null));
     }
 
     @Test
-    public void testEmptyOptionalOngetResourceError() {
+    public void empty_optional_on_error_getting_resource() {
         when(resultPool.getResource()).thenThrow(new RuntimeException());
 
         assertEquals(null, clientProvider.getJedisClient().orElse(null));
     }
 
     @Test
-    public void testValidResultOnNoExceptions() {
+    public void valid_client_on_no_exception() {
         assertEquals(client, clientProvider.getJedisClient().orElse(null));
     }
 
     @Test
-    public void testValidResultOnSecondTry() {
+    public void valid_client_on_second_try_due_to_error_getting_resource() {
         when(resultPool.getResource()).thenThrow(new RuntimeException()).thenReturn(client);
+        assertEquals(null, clientProvider.getJedisClient().orElse(null));
+        assertEquals(client, clientProvider.getJedisClient().orElse(null));
+    }
+
+    @Test
+    public void valid_client_on_second_try_due_to_error_creating_pool() {
+        when(poolFactory.createPool(Matchers.any())).thenThrow(new RuntimeException()).thenReturn(resultPool);
         assertEquals(null, clientProvider.getJedisClient().orElse(null));
         assertEquals(client, clientProvider.getJedisClient().orElse(null));
     }

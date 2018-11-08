@@ -48,7 +48,7 @@ public class JedisPoolFactoryTest {
     }
 
     @Test
-    public void ifSchemeIsNode_aJedisPoolIsCreated() throws Exception {
+    public void create_jedis_pool_on_node_scheme() throws Exception {
 
         when(redisConnectionConfigMock.getScheme()).thenReturn(RedisConnectionConfig.RedisScheme.NODE);
 
@@ -58,7 +58,7 @@ public class JedisPoolFactoryTest {
     }
 
     @Test
-    public void ifSchemeIsSentinel_aJedisSentinelPoolIsCreated() throws Exception {
+    public void create_sentinel_pool_on_sentinel_scheme() throws Exception {
 
         when(redisConnectionConfigMock.getScheme()).thenReturn(RedisConnectionConfig.RedisScheme.SENTINEL);
 
@@ -68,7 +68,7 @@ public class JedisPoolFactoryTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void anExceptionIsThrownDuringJedisPoolCreationWithNullScheme() throws Exception {
+    public void exception_on_null_scheme() throws Exception {
 
         when(redisConnectionConfigMock.getScheme()).thenReturn(null);
 
@@ -78,7 +78,7 @@ public class JedisPoolFactoryTest {
     }
 
     @Test
-    public void sentinelsCanBeExtracted() throws Exception {
+    public void sentinels_can_be_extracted() throws Exception {
 
         final Set<String> sentinels = jedisPoolFactory.getSentinels("om-test-02:6379, om-test-03:6379");
 

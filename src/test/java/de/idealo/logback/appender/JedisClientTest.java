@@ -41,14 +41,14 @@ public class JedisClientTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testExceptionOnInvalidMaxTries() {
+    public void exception_on_invalid_max_tries_value() {
         try (JedisClient jedisClient = new JedisClient(clientProvider, 0, INIT_RETRIES_INTERVAL_MILLIS)) {
 
         }
     }
 
     @Test
-    public void testClientOnLastRetry() throws InterruptedException {
+    public void valid_client_on_last_retry() throws InterruptedException {
         withClientOnTryNumber(MAX_INIT_RETRIES);
         try (JedisClient jedisClient = new JedisClient(clientProvider, MAX_INIT_RETRIES, INIT_RETRIES_INTERVAL_MILLIS)) {
             TimeUnit.MILLISECONDS.sleep(INIT_RETRIES_INTERVAL_MILLIS * (MAX_INIT_RETRIES + 1));
@@ -59,7 +59,7 @@ public class JedisClientTest {
     }
 
     @Test
-    public void testNoClientOnMaxRetries() throws InterruptedException {
+    public void no_client_on_exceeded_retries() throws InterruptedException {
         int clientOnTry = MAX_INIT_RETRIES + 1;
         withClientOnTryNumber(clientOnTry);
         try (JedisClient jedisClient = new JedisClient(clientProvider, MAX_INIT_RETRIES, INIT_RETRIES_INTERVAL_MILLIS)) {
@@ -71,7 +71,7 @@ public class JedisClientTest {
     }
 
     @Test
-    public void testWorkingReconnectAfterInitFailed() throws InterruptedException {
+    public void reconnect_succeeds_after_init_failed() throws InterruptedException {
         int clientOnTry = MAX_INIT_RETRIES + 1;
         withClientOnTryNumber(clientOnTry);
         try (JedisClient jedisClient = new JedisClient(clientProvider, MAX_INIT_RETRIES, INIT_RETRIES_INTERVAL_MILLIS)) {
@@ -87,7 +87,7 @@ public class JedisClientTest {
     }
 
     @Test
-    public void testNoPipelineOnFailingReconnect() throws InterruptedException {
+    public void no_pipeline_on_failed_reconnect() throws InterruptedException {
         when(clientProvider.getJedisClient()).thenReturn(Optional.of(jedis)).thenReturn(Optional.empty());
         doThrow(new JedisException("")).when(jedis).close();
 
@@ -103,7 +103,7 @@ public class JedisClientTest {
     }
 
     @Test
-    public void testNewPipelineOnSuccessfulReconnect() throws InterruptedException {
+    public void new_pipeline_on_successful_reconnect() throws InterruptedException {
         Jedis newJedis = mock(Jedis.class);
         Pipeline newPipeline = mock(Pipeline.class);
         when(newJedis.pipelined()).thenReturn(newPipeline);
@@ -121,7 +121,7 @@ public class JedisClientTest {
     }
 
     @Test
-    public void testNoReconnectDuringInitialization() throws InterruptedException {
+    public void no_reconnect_during_initialization() throws InterruptedException {
         final Jedis firstInitTryResult = mock(Jedis.class);
         final Jedis reconnectResult = mock(Jedis.class);
 
@@ -145,7 +145,7 @@ public class JedisClientTest {
     }
 
     @Test
-    public void testStopInitOnShutdown() throws InterruptedException {
+    public void stop_initialization_on_shutdown() throws InterruptedException {
         final int initRetryMillis = 50;
         when(clientProvider.getJedisClient()).thenReturn(Optional.empty());
         try (JedisClient jedisClient = new JedisClient(clientProvider, Integer.MAX_VALUE, initRetryMillis)) {

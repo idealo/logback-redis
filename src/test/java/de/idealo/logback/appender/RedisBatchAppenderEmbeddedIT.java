@@ -16,8 +16,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.LoggerFactory;
@@ -53,13 +53,13 @@ public class RedisBatchAppenderEmbeddedIT {
     /** defined logback-xml.xml */
     private static final String REDIS_LOGGER_NAME = "LoggingTest";
 
-    private static RedisServer redisServer;
-    private static Jedis redisClient;
+    private RedisServer redisServer;
+    private Jedis redisClient;
 
     private final AtomicLong lastSequenceId = new AtomicLong(0);
 
-    @BeforeClass
-    public static void beforeClass() throws Exception {
+    @Before
+    public void init() throws Exception {
         redisServer = new RedisServerBuilder()
                 .port(LOCAL_REDIS_PORT)
                 .setting("timeout " + REDIS_IDLE_TIMEOUT_IN_SECONDS)
@@ -74,8 +74,8 @@ public class RedisBatchAppenderEmbeddedIT {
         logStatus();
     }
 
-    @AfterClass
-    public static void afterClass() throws Exception {
+    @After
+    public void shutdown() throws Exception {
         if (redisClient != null) {
             redisClient.close();
         }
@@ -88,7 +88,7 @@ public class RedisBatchAppenderEmbeddedIT {
     }
 
     @Test
-    public void allMessagesAreSuccessfullyLoggedBeforeAndAfterConnectionTimeout() throws Exception {
+    public void all_messages_are_successfully_logged_before_and_after_connection_timeout() throws Exception {
         messageIsSuccessfullyLogged();
         log().info("all messages are successfully logged before connection timeout");
 
@@ -103,7 +103,7 @@ public class RedisBatchAppenderEmbeddedIT {
     }
 
     @Test
-    public void allMessagesAreSuccessfullyLoggedAfterRedisWasTemporarilyNotAvailable() throws Exception {
+    public void all_messages_are_successfully_logged_after_redis_was_temporarily_not_available() throws Exception {
         redisServer.stop();
         log().info("stopped redis server");
         logMessages(1, 1, "message during stopped redis");
@@ -121,7 +121,7 @@ public class RedisBatchAppenderEmbeddedIT {
     }
 
     @Test
-    public void shouldNotFailOnUnreachableRedisServer() {
+    public void dont_fail_on_unreachable_redis_server() {
         redisServer.stop();
 
         RedisBatchAppender redisBatchAppender = new RedisBatchAppender();
@@ -134,7 +134,7 @@ public class RedisBatchAppenderEmbeddedIT {
     }
 
     @Test
-    public void shouldRetryConnectionAfterInterval() throws InterruptedException {
+    public void retry_connection_after_interval() throws InterruptedException {
         RedisCluster cluster = RedisCluster.builder().ephemeral().sentinelCount(3).quorumSize(2)
                 .replicationGroup("master1", 1)
                 .replicationGroup("master2", 1)
