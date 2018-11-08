@@ -39,7 +39,7 @@ public class JedisClient implements Closeable {
     }
 
     public Optional<Pipeline> getPipeline() {
-        return client == null ? Optional.empty() : Optional.of(client.pipelined());
+        return Optional.ofNullable(client).map(Jedis::pipelined);
     }
 
     public void reconnect() {
