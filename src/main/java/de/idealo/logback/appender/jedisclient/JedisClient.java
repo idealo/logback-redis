@@ -1,4 +1,4 @@
-package de.idealo.logback.appender;
+package de.idealo.logback.appender.jedisclient;
 
 import static de.idealo.logback.appender.utils.ThreadUtils.createThread;
 
@@ -30,12 +30,12 @@ public class JedisClient implements Closeable {
     private volatile boolean initializing;
     private volatile boolean shutdown;
 
-    JedisClient(JedisClientProvider clientProvider, int maxInitFailureRetries, long retryInitializeIntervalMillis) {
+    public JedisClient(JedisClientProvider clientProvider, int maxInitTries, long retryInitializeIntervalMillis) {
         this.clientProvider = clientProvider;
-        log = LoggerFactory.getLogger(JedisClient.class);
+        log = LoggerFactory.getLogger(getClass());
         this.retryInitializeIntervalMillis = retryInitializeIntervalMillis;
         initializing = true;
-        initClient(maxInitFailureRetries);
+        initClient(maxInitTries);
     }
 
     public Optional<Pipeline> getPipeline() {

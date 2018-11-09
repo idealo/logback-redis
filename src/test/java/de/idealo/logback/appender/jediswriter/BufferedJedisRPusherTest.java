@@ -1,4 +1,4 @@
-package de.idealo.logback.appender;
+package de.idealo.logback.appender.jediswriter;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.anyVararg;
@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -18,45 +19,41 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import ch.qos.logback.core.encoder.Encoder;
+import de.idealo.logback.appender.jedisclient.JedisClient;
+import de.idealo.logback.appender.jediswriter.AbstractBufferedJedisWriter;
+import de.idealo.logback.appender.jediswriter.BufferedJedisRPusher;
+
 import ch.qos.logback.core.spi.DeferredProcessingAware;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
-public class BufferedJedisWriterTest {
+public class BufferedJedisRPusherTest {
     private static final String KEY = "TEST_KEY";
-    private static final byte[] EMPTY_MESSAGE = new byte[0];
     private static final int DEFAULT_QUEUE_ITEMS = 3;
     private static final int DEFAULT_BATCH_WAIT_MILLIS = 100;
 
     @Mock
     private JedisClient client;
     @Mock
-    private Encoder<DeferredProcessingAware> encoder;
+    private Function<DeferredProcessingAware, String> messageCreator;
     @Mock
     private Pipeline pipeline;
 
-    private BufferedJedisWriter writer;
+    private AbstractBufferedJedisWriter writer;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        when(encoder.encode(Matchers.any())).thenReturn(EMPTY_MESSAGE);
+        when(messageCreator.apply(Matchers.any())).thenAnswer(invocation -> String.valueOf(invocation.getArgumentAt(0, DeferredProcessingAware.class)));
         final Optional<Pipeline> defaultPipeline = Optional.of(pipeline);
         when(client.getPipeline()).thenReturn(defaultPipeline);
 
-        writer = new BufferedJedisWriter(client, encoder, KEY, DEFAULT_QUEUE_ITEMS, DEFAULT_BATCH_WAIT_MILLIS);
+        writer = new BufferedJedisRPusher(client, messageCreator, KEY, DEFAULT_QUEUE_ITEMS, DEFAULT_BATCH_WAIT_MILLIS);
     }
 
     @After
     public void shutdown() {
         writer.close();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void exception_on_missing_encoder() {
-        try (BufferedJedisWriter noInstance = new BufferedJedisWriter(client, null, KEY, 1, 1)) {
-        }
     }
 
     @Test

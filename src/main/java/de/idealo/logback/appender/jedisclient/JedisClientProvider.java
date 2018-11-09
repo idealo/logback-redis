@@ -1,4 +1,4 @@
-package de.idealo.logback.appender;
+package de.idealo.logback.appender.jedisclient;
 
 import java.io.Closeable;
 import java.util.Optional;
@@ -23,7 +23,7 @@ public class JedisClientProvider implements Closeable {
     private Pool<Jedis> pool;
 
     public JedisClientProvider(JedisPoolFactory poolFactory, RedisConnectionConfig connectionConfig) {
-        log = LoggerFactory.getLogger(JedisClientProvider.class);
+        log = LoggerFactory.getLogger(getClass());
         this.poolFactory = poolFactory;
         this.connectionConfig = connectionConfig;
     }
