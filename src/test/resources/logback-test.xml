@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration debug="false" scan="true" scanPeriod="30 seconds">
+<configuration debug="false" scan="true">
 
     <appender name="REDIS_APPENDER" class="de.idealo.logback.appender.RedisBatchAppender">
         <connectionConfig>
@@ -9,6 +9,7 @@
             <!--<sentinels>${logback.redis.test.redis.sentinels:-localhost:26379}</sentinels>-->
             <!--redis node: -->
             <scheme>NODE</scheme>
+            <method>RPUSH</method>
             <host>${logback.redis.test.redis.host:-localhost}</host>
             <port>${logback.redis.test.redis.port:-6379}</port> <!-- embedded redis -->
             <key>integrationtest</key>
