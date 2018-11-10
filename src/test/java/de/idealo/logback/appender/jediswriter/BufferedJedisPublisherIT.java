@@ -76,20 +76,19 @@ public class BufferedJedisPublisherIT {
 
         try (BufferedJedisPublisher publisher = new BufferedJedisPublisher(jedisClient, MESSAGE_CREATOR, CHANNEL, 1, BUFFER_FLUSH_MILLIS)) {
             final CountDownLatch receiverStarted = new CountDownLatch(1);
-            final CountDownLatch messagesReceivedLatch = new CountDownLatch(EVENTS.size());
-            final ValueReceiver valueReceiver = new ValueReceiver(redisSubscriber, receiverStarted, messagesReceivedLatch);
+            final CountDownLatch messagesReceived = new CountDownLatch(EVENTS.size());
+            final ValueReceiver valueReceiver = new ValueReceiver(redisSubscriber, receiverStarted, messagesReceived);
 
             final Thread receiverThread = new Thread(valueReceiver);
             receiverThread.start();
             receiverStarted.await();
-            TimeUnit.MILLISECONDS.sleep(300L);
 
             final Set<String> sentMessages = new HashSet<>(EVENTS.size());
             for (DeferredProcessingAware event : EVENTS) {
                 publisher.append(event);
                 sentMessages.add(MESSAGE_CREATOR.apply(event));
             }
-            messagesReceivedLatch.await(5 * BUFFER_FLUSH_MILLIS, TimeUnit.MILLISECONDS);
+            messagesReceived.await(5 * BUFFER_FLUSH_MILLIS, TimeUnit.MILLISECONDS);
             valueReceiver.unsubscribe();
 
             assertThat(valueReceiver.receivedMessages, is(equalTo(sentMessages)));
@@ -110,8 +109,12 @@ public class BufferedJedisPublisherIT {
         }
 
         @Override
-        public void run() {
+        public void onSubscribe(String channel, int subscribedChannels) {
             receiverStarted.countDown();
+        }
+
+        @Override
+        public void run() {
             redisSubscriber.subscribe(this, CHANNEL);
         }
     }
