@@ -15,7 +15,7 @@ More specifically, it uses [async appenders](https://github.com/logstash/logstas
 </dependency>
 ```
 
-used best in conjuction with
+used best in conjunction with
 
 ```xml
 <dependency>
@@ -77,6 +77,7 @@ used best in conjuction with
     * for scheme=NODE:
         * host: redis host
         * port: redis port
+    * method (RPUSH | PUBLISH): defines the method to that should be used to send values to redis. with method PUBLISH the value defined as key is used as channel name. if method is omitted, then RPUSH is used. 
     * ssl: Whether to use SSL to communicate with redis (false or true, default is false). Your client and server certificates must be set up correctly.
 * maxBatchMessages: number of messages which are sent as batch size to redis
 * maxBatchSeconds: time interval in seconds after a batch of messages is sent to redis if the batch size is not reached 
