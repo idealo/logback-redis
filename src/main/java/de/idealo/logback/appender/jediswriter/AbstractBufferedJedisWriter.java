@@ -168,7 +168,7 @@ public abstract class AbstractBufferedJedisWriter implements Closeable {
         return flusherThreadActions.get();
     }
 
-    @SuppressWarnings("squid:S2142")
+    @SuppressWarnings("squid:S2142") // rule=Interrupted exceptions should not be ignored: we don't want to set the interrupted-flag
     private void flushPeriodically() {
         while (!shutdown) {
             try {

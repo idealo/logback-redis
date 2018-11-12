@@ -21,7 +21,7 @@ public class BufferedJedisWriterFactory {
         this.jedisPoolFactory = jedisPoolFactory;
     }
 
-    @SuppressWarnings("squid:S2095")
+    @SuppressWarnings("squid:S2095") // rule=resource should be closed: JedisClient is closed when writer is shut down
     public AbstractBufferedJedisWriter createJedisWriter(JedisWriterConfiguration writerConfiguration) {
         final RedisConnectionConfig connectionConfig = writerConfiguration.getConnectionConfig();
         final Method method = connectionConfig.getMethod();
