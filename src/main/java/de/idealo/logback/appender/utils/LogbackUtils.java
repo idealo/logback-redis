@@ -1,16 +1,13 @@
 package de.idealo.logback.appender.utils;
 
 import org.slf4j.ILoggerFactory;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.LoggerContext;
 
 import de.idealo.logback.appender.RedisBatchAppender;
 
-public final class LogbackUtils {
+import ch.qos.logback.classic.LoggerContext;
 
-    private static final Logger LOG = LoggerFactory.getLogger(LogbackUtils.class);
+public final class LogbackUtils {
 
     private LogbackUtils() {
     }
@@ -25,6 +22,7 @@ public final class LogbackUtils {
      * but this doesn't work in Spring Boot apps when shut down with the actuator shutdown URL.
      *
      * Therefore, this method should be called in Spring Boot apps as follows:
+     * 
      * <pre>
      *{@literal @}Component
      * public class LogbackStopListener implements ApplicationListener&lt;ContextClosedEvent&gt; {
@@ -36,11 +34,11 @@ public final class LogbackUtils {
      * </pre>
      */
     public static void stopLogback() {
-        LOG.debug("shutting down logback");
+        LoggerFactory.getLogger(LogbackUtils.class).debug("shutting down logback");
 
         ILoggerFactory factory = LoggerFactory.getILoggerFactory();
         if (factory instanceof LoggerContext) {
-            LoggerContext ctx = (LoggerContext)factory;
+            LoggerContext ctx = (LoggerContext) factory;
             ctx.stop();
         }
     }

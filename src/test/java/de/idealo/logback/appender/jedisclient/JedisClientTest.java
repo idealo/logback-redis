@@ -1,4 +1,4 @@
-package de.idealo.logback.appender;
+package de.idealo.logback.appender.jedisclient;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -17,6 +17,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.OngoingStubbing;
+
+import de.idealo.logback.appender.jedisclient.JedisClient;
+import de.idealo.logback.appender.jedisclient.JedisClientProvider;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;

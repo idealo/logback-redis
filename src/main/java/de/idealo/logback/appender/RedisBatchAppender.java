@@ -2,6 +2,13 @@ package de.idealo.logback.appender;
 
 import java.util.concurrent.TimeUnit;
 
+import de.idealo.logback.appender.jedisclient.JedisPoolCreator;
+import de.idealo.logback.appender.jedisclient.JedisPoolFactory;
+import de.idealo.logback.appender.jedisclient.RedisConnectionConfig;
+import de.idealo.logback.appender.jediswriter.AbstractBufferedJedisWriter;
+import de.idealo.logback.appender.jediswriter.BufferedJedisWriterFactory;
+import de.idealo.logback.appender.jediswriter.JedisWriterConfiguration;
+
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.spi.DeferredProcessingAware;
@@ -15,7 +22,7 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
 
     private static final int DEFAULT_MAX_BATCH_MESSAGES = 1000;
     private static final int DEFAULT_MAX_BATCH_SECONDS = 5;
-    private static final JedisPoolFactory JEDIS_POOL_FACTORY = new JedisPoolFactory();
+    private final BufferedJedisWriterFactory jedisWriterFactory;
 
     // logger configurable options
     private boolean retryOnInitializeError = true;
@@ -24,17 +31,29 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
     private int maxBatchMessages = DEFAULT_MAX_BATCH_MESSAGES;
     private int maxBatchSeconds = DEFAULT_MAX_BATCH_SECONDS;
     private RedisConnectionConfig connectionConfig;
-    private BufferedJedisWriter writer;
+    private AbstractBufferedJedisWriter writer;
+
+    public RedisBatchAppender() {
+        this(new JedisPoolFactory(new JedisPoolCreator()));
+    }
+
+    // for testing
+    RedisBatchAppender(JedisPoolFactory jedisPoolFactory) {
+        jedisWriterFactory = new BufferedJedisWriterFactory(jedisPoolFactory);
+    }
 
     @Override
     public void start() {
         super.start();
-        final JedisClientProvider clientProvider = new JedisClientProvider(JEDIS_POOL_FACTORY, connectionConfig);
-        final JedisClient client = new JedisClient(clientProvider,
-                retryOnInitializeError ? Integer.MAX_VALUE : 1,
-                TimeUnit.SECONDS.toMillis(retryInitializeIntervalInSeconds));
-
-        writer = new BufferedJedisWriter(client, encoder, connectionConfig.getKey(), maxBatchMessages, TimeUnit.SECONDS.toMillis(maxBatchSeconds));
+        final JedisWriterConfiguration configuration = JedisWriterConfiguration.builder()
+                .connectionConfig(connectionConfig)
+                .encoder(encoder)
+                .maxBufferedMessages(maxBatchMessages)
+                .flushBufferIntervalMillis(TimeUnit.SECONDS.toMillis(maxBatchSeconds))
+                .maxInitializeTries(retryOnInitializeError ? Integer.MAX_VALUE : 1)
+                .retryInitializeIntervalMillis(TimeUnit.SECONDS.toMillis(retryInitializeIntervalInSeconds))
+                .build();
+        writer = jedisWriterFactory.createJedisWriter(configuration);
     }
 
     @Override
@@ -48,10 +67,6 @@ public class RedisBatchAppender extends AppenderBase<DeferredProcessingAware> {
         if (writer != null) {
             writer.close();
         }
-    }
-
-    public Encoder<DeferredProcessingAware> getEncoder() {
-        return encoder;
     }
 
     public void setEncoder(Encoder<DeferredProcessingAware> encoder) {

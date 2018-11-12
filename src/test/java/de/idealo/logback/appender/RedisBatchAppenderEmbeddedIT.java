@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.LoggerFactory;
 
+import de.idealo.logback.appender.jedisclient.RedisConnectionConfig;
 import de.idealo.logback.appender.utils.MDCUtils;
 
 import ch.qos.logback.classic.Level;

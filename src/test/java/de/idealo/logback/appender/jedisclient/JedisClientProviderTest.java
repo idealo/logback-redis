@@ -1,4 +1,4 @@
-package de.idealo.logback.appender;
+package de.idealo.logback.appender.jedisclient;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
