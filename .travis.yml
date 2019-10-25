@@ -1,7 +1,7 @@
 language: java
 
 jdk:
-  - oraclejdk8
+  - openjdk11
 
 script: mvn --settings .travis/settings.xml clean  verify
 
@@ -13,7 +13,8 @@ deploy:
     on:
       repo: idealo/logback-redis
       tags: true
-      jdk: oraclejdk8
+      jdk: openjdk11
+
 
 
 notifications:
