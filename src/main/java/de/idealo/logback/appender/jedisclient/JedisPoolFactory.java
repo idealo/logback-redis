@@ -3,7 +3,7 @@ package de.idealo.logback.appender.jedisclient;
 import java.util.Arrays;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.util.Pool;
+import redis.clients.jedis.util.Pool;
 
 /**
  * Factory for Jedis pool creation. Supports the creation of clients for single and sentinel Redis installations.
